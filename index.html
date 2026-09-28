@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>汉字 Paso a Paso</title>
+  <meta name="description" content="Aprende chino simplificado: pinyin, caracteres, su composición y escritura, en 10 niveles.">
+
+  <!-- App instalable (PWA): iPhone/iPad con «Añadir a pantalla de inicio», Android y escritorio -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#faf6ef" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1c1916" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Hanzi">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icono-192.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&family=Noto+Serif+SC:wght@600&family=Nunito:wght@400;600;800&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="barra">
+    <a href="#/" class="logo"><span class="hz">汉字</span> Paso a Paso</a>
+    <nav class="pestanas" aria-label="Secciones">
+      <a href="#/" data-nav="inicio"><span class="ico" aria-hidden="true">🏯</span><span>Niveles</span></a>
+      <a href="#/libro" data-nav="libro"><span class="ico" aria-hidden="true">📘</span><span>Libro</span></a>
+      <a href="#/pinyin" data-nav="pinyin"><span class="ico" aria-hidden="true">🎵</span><span>Pinyin</span></a>
+      <a href="#/componentes" data-nav="componentes"><span class="ico" aria-hidden="true">🧩</span><span>Piezas</span></a>
+      <a href="#/repaso" data-nav="repaso"><span class="ico" aria-hidden="true">🔁</span><span>Repaso</span><span id="badge-repaso" class="badge" hidden></span></a>
+    </nav>
+  </header>
+
+  <main id="app" tabindex="-1"></main>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/data/datos.js"></script>
+  <script src="js/data/pinyin.js"></script>
+  <script src="js/data/trazos.js"></script>
+  <script src="vendor/hanzi-writer.min.js"></script>
+  <script src="js/progreso.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/vistas.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

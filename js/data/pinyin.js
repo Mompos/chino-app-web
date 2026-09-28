@@ -1,0 +1,127 @@
+// Guía de pinyin para hispanohablantes.
+window.PINYIN = {
+  tonos: [
+    { n: 1, marca: 'ā', nombre: 'Primer tono', forma: 'alto y plano ˉ', contorno: '5→5',
+      consejo: 'Como cuando el médico te pide decir "aaa": agudo y sostenido, sin subir ni bajar.',
+      ejemplo: { c: '妈', p: 'mā', es: 'mamá' } },
+    { n: 2, marca: 'á', nombre: 'Segundo tono', forma: 'ascendente ˊ', contorno: '3→5',
+      consejo: 'Como una pregunta sorprendida en español: "¿Qué?". Empieza a media altura y sube.',
+      ejemplo: { c: '麻', p: 'má', es: 'cáñamo' } },
+    { n: 3, marca: 'ǎ', nombre: 'Tercer tono', forma: 'baja y sube ˇ', contorno: '2→1→4',
+      consejo: 'Baja hasta lo más grave y vuelve a subir, como un "¿Ahhh sí?" dudoso. En la conversación a menudo solo se hace la parte baja.',
+      ejemplo: { c: '马', p: 'mǎ', es: 'caballo' } },
+    { n: 4, marca: 'à', nombre: 'Cuarto tono', forma: 'descendente ˋ', contorno: '5→1',
+      consejo: 'Seco y rápido, de arriba abajo, como una orden: "¡No!", "¡Ya!".',
+      ejemplo: { c: '骂', p: 'mà', es: 'regañar' } },
+    { n: 5, marca: 'a', nombre: 'Tono neutro', forma: 'corto y suave', contorno: '·',
+      consejo: 'Sin marca. Sílaba breve y relajada, como las partículas 吗, 呢, 了 o la segunda sílaba de 妈妈.',
+      ejemplo: { c: '吗', p: 'ma', es: 'partícula de pregunta' } },
+  ],
+
+  iniciales: [
+    { grupo: 'Labiales', items: [
+      { i: 'b', nota: 'Como la "p" española, sin aire.', ej: '爸 bà' },
+      { i: 'p', nota: 'Una "p" con un soplo de aire fuerte.', ej: '跑 pǎo' },
+      { i: 'm', nota: 'Como en español.', ej: '妈 mā' },
+      { i: 'f', nota: 'Como en español.', ej: '飞 fēi' } ] },
+    { grupo: 'Alveolares', items: [
+      { i: 'd', nota: 'Como la "t" española, sin aire.', ej: '大 dà' },
+      { i: 't', nota: 'Una "t" con soplo de aire.', ej: '他 tā' },
+      { i: 'n', nota: 'Como en español.', ej: '你 nǐ' },
+      { i: 'l', nota: 'Como en español.', ej: '来 lái' } ] },
+    { grupo: 'Velares', items: [
+      { i: 'g', nota: 'Como la "c" de "casa", sin aire.', ej: '哥 gē' },
+      { i: 'k', nota: 'Una "k" con soplo de aire.', ej: '看 kàn' },
+      { i: 'h', nota: 'Como la "j" española, pero más suave.', ej: '好 hǎo' } ] },
+    { grupo: 'Palatales', items: [
+      { i: 'j', nota: 'Como "ch" pero con la lengua pegada a los dientes de abajo y sonriendo.', ej: '家 jiā' },
+      { i: 'q', nota: 'Como la j, con soplo de aire: "chi" muy aspirado.', ej: '七 qī' },
+      { i: 'x', nota: 'Una "s" suave sonriendo, casi "si" con la lengua abajo.', ej: '小 xiǎo' } ] },
+    { grupo: 'Retroflejas (lengua hacia atrás)', items: [
+      { i: 'zh', nota: 'Como "ch" con la punta de la lengua doblada hacia atrás, sin aire.', ej: '中 zhōng' },
+      { i: 'ch', nota: 'Como zh pero con soplo de aire.', ej: '吃 chī' },
+      { i: 'sh', nota: 'Como el "sh" inglés, con la lengua hacia atrás.', ej: '是 shì' },
+      { i: 'r', nota: 'Entre la "y" argentina y la "r" inglesa. ¡No la hagas vibrar!', ej: '人 rén' } ] },
+    { grupo: 'Dentales', items: [
+      { i: 'z', nota: 'Como "ts" en "tsunami", sin aire.', ej: '再 zài' },
+      { i: 'c', nota: 'Como "ts" con soplo de aire fuerte.', ej: '菜 cài' },
+      { i: 's', nota: 'Como la "s" española.', ej: '三 sān' } ] },
+    { grupo: 'Semivocales', items: [
+      { i: 'y', nota: 'Como la "i" (ya = ia).', ej: '有 yǒu' },
+      { i: 'w', nota: 'Como la "u" (wo = uo).', ej: '我 wǒ' } ] },
+  ],
+
+  finales: [
+    { grupo: 'Simples', items: [
+      { f: 'a', nota: 'Como la "a" española.', ej: '八 bā' },
+      { f: 'o', nota: 'Una "o" que empieza con un poco de "u": "uo".', ej: '我 wǒ' },
+      { f: 'e', nota: '¡No es la "e" española! Una vocal oscura, como decir "e" sin sonreír, parecida a "ö" hacia atrás.', ej: '喝 hē' },
+      { f: 'i', nota: 'Como la "i" española. Tras z, c, s, zh, ch, sh, r es un zumbido sin vocal.', ej: '你 nǐ' },
+      { f: 'u', nota: 'Como la "u" española.', ej: '五 wǔ' },
+      { f: 'ü', nota: 'Di "i" con los labios en forma de "u". Tras j, q, x, y se escribe sin puntos: ju, qu, xu, yu.', ej: '女 nǚ' } ] },
+    { grupo: 'Compuestas', items: [
+      { f: 'ai', nota: 'Como "ai" en "aire".', ej: '爱 ài' },
+      { f: 'ei', nota: 'Como "ei" en "rey".', ej: '北 běi' },
+      { f: 'ao', nota: 'Como "au" en "auto".', ej: '好 hǎo' },
+      { f: 'ou', nota: 'Como "ou" (o + u).', ej: '有 yǒu' },
+      { f: 'ia', nota: '"ia" como en "Asia".', ej: '家 jiā' },
+      { f: 'ie', nota: '"ie" con e abierta, como en "pie".', ej: '谢 xiè' },
+      { f: 'ua', nota: '"ua" como en "agua".', ej: '花 huā' },
+      { f: 'uo', nota: '"uo".', ej: '说 shuō' },
+      { f: 'üe', nota: '"ü" + "e" abierta.', ej: '学 xué' },
+      { f: 'iao', nota: '"iau".', ej: '小 xiǎo' },
+      { f: 'iu', nota: 'Se pronuncia "iou".', ej: '六 liù' },
+      { f: 'uai', nota: '"uai" como en "Paraguay".', ej: '快 kuài' },
+      { f: 'ui', nota: 'Se pronuncia "uei".', ej: '贵 guì' } ] },
+    { grupo: 'Nasales', items: [
+      { f: 'an', nota: '"an" con n adelante.', ej: '三 sān' },
+      { f: 'en', nota: 'Vocal oscura + n: "ən".', ej: '人 rén' },
+      { f: 'in', nota: '"in".', ej: '您 nín' },
+      { f: 'un', nota: 'Se pronuncia "uen". Tras j, q, x, y es "ün".', ej: '准 zhǔn' },
+      { f: 'ang', nota: '"an" con la n al fondo de la garganta (como "ng" en inglés).', ej: '忙 máng' },
+      { f: 'eng', nota: 'Vocal oscura + "ng".', ej: '朋 péng' },
+      { f: 'ing', nota: '"i" + "ng".', ej: '名 míng' },
+      { f: 'ong', nota: '"ung" con los labios redondeados.', ej: '中 zhōng' },
+      { f: 'ian', nota: '¡Ojo! Se pronuncia "ien".', ej: '见 jiàn' },
+      { f: 'uan', nota: '"uan". Tras j, q, x, y es "üan".', ej: '远 yuǎn' },
+      { f: 'iang', nota: '"iang".', ej: '想 xiǎng' },
+      { f: 'uang', nota: '"uang".', ej: '王 wáng' } ] },
+  ],
+
+  reglas: [
+    { titulo: '¿Dónde va la marca del tono?',
+      texto: 'Sobre la a o la e si las hay (hǎo, xiè). En "ou" va sobre la o (yǒu). Si no, sobre la última vocal (guì, liù).' },
+    { titulo: 'Tercer tono + tercer tono',
+      texto: 'Cuando van dos terceros tonos seguidos, el primero se pronuncia como segundo tono: 你好 nǐ hǎo suena "ní hǎo". Se sigue escribiendo nǐ.' },
+    { titulo: 'El cambio de 不 bù',
+      texto: 'Delante de un cuarto tono, 不 se pronuncia bú: 不是 bú shì, 不对 bú duì.' },
+    { titulo: 'El cambio de 一 yī',
+      texto: 'Delante de un cuarto tono se dice yí (一个 yí ge); delante de los tonos 1, 2 y 3 se dice yì (一天 yì tiān). Al contar o al final se dice yī.' },
+    { titulo: 'Aspiradas y no aspiradas',
+      texto: 'b/p, d/t, g/k, z/c, zh/ch, j/q se distinguen por el soplo de aire, no por la vibración. Pon la mano delante de la boca: con p, t, k, c, ch y q debes notar el aire.' },
+    { titulo: 'La terminación -r (儿化)',
+      texto: 'En el norte de China se añade una "r" al final: 哪儿 nǎr, 一点儿 yìdiǎnr, 玩儿 wánr. La n anterior desaparece: 一点儿 suena "yìdiǎr".' },
+  ],
+
+  trazos: [
+    { c: '丶', nombre: 'diǎn', es: 'punto', ej: '门 热' },
+    { c: '一', nombre: 'héng', es: 'horizontal', ej: '一 二 三' },
+    { c: '丨', nombre: 'shù', es: 'vertical', ej: '十 木' },
+    { c: '丿', nombre: 'piě', es: 'barrido a la izquierda', ej: '刀 八' },
+    { c: '㇏', nombre: 'nà', es: 'barrido a la derecha', ej: '八 人' },
+    { c: '㇀', nombre: 'tí', es: 'ascendente', ej: '我 打' },
+    { c: '㇖', nombre: 'hénggōu', es: 'horizontal con gancho', ej: '写 买' },
+    { c: '𠃍', nombre: 'héngzhé', es: 'horizontal y quiebre', ej: '口 日' },
+    { c: '亅', nombre: 'shùgōu', es: 'vertical con gancho', ej: '小 水' },
+  ],
+
+  ordenTrazos: [
+    { regla: 'De arriba hacia abajo', ej: '二 三' },
+    { regla: 'De izquierda a derecha', ej: '人 八 好' },
+    { regla: 'Primero lo de afuera, después lo de adentro', ej: '月 同' },
+    { regla: 'Horizontal antes que vertical', ej: '十 干' },
+    { regla: 'Barrido izquierdo antes que el derecho', ej: '人 八' },
+    { regla: 'Primero el centro, luego los lados', ej: '小 水' },
+    { regla: 'Entra, llena y cierra la puerta', ej: '四 日 国' },
+  ],
+};

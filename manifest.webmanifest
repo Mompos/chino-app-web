@@ -1,0 +1,18 @@
+{
+  "name": "汉字 Paso a Paso",
+  "short_name": "Hanzi",
+  "description": "Aprende chino simplificado: pinyin, caracteres, su composición y escritura, en 10 niveles.",
+  "lang": "es",
+  "start_url": "./#/",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#faf6ef",
+  "theme_color": "#c8372d",
+  "categories": ["education"],
+  "icons": [
+    { "src": "icons/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
