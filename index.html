@@ -24,13 +24,14 @@
 </head>
 <body>
   <header class="barra">
-    <a href="#/" class="logo"><span class="hz">汉字</span> Paso a Paso</a>
+    <a href="#/hoy" class="logo"><span class="hz">汉字</span> Paso a Paso</a>
+    <button id="btn-voz" class="btn-voz" type="button" aria-pressed="false" title="Silenciar la voz">🔊</button>
     <nav class="pestanas" aria-label="Secciones">
-      <a href="#/" data-nav="inicio"><span class="ico" aria-hidden="true">🏯</span><span>Niveles</span></a>
+      <a href="#/hoy" data-nav="hoy"><span class="ico" aria-hidden="true">☀️</span><span>Hoy</span><span id="badge-hoy" class="badge" hidden></span></a>
+      <a href="#/niveles" data-nav="niveles"><span class="ico" aria-hidden="true">🏯</span><span>Niveles</span></a>
       <a href="#/libro" data-nav="libro"><span class="ico" aria-hidden="true">📘</span><span>Libro</span></a>
-      <a href="#/pinyin" data-nav="pinyin"><span class="ico" aria-hidden="true">🎵</span><span>Pinyin</span></a>
-      <a href="#/componentes" data-nav="componentes"><span class="ico" aria-hidden="true">🧩</span><span>Piezas</span></a>
-      <a href="#/repaso" data-nav="repaso"><span class="ico" aria-hidden="true">🔁</span><span>Repaso</span><span id="badge-repaso" class="badge" hidden></span></a>
+      <a href="#/tutor" data-nav="tutor"><span class="ico" aria-hidden="true">💬</span><span>Tutor</span></a>
+      <a href="#/mas" data-nav="mas"><span class="ico" aria-hidden="true">☰</span><span>Más</span></a>
     </nav>
   </header>
 
@@ -42,10 +43,16 @@
   <script src="js/data/pinyin.js"></script>
   <script src="js/data/trazos.js"></script>
   <script src="vendor/hanzi-writer.min.js"></script>
+  <script src="vendor/qrcode.js"></script>
+  <script src="js/items.js"></script>
   <script src="js/progreso.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/vistas.js"></script>
   <script src="js/quiz.js"></script>
+  <script src="js/sesion.js"></script>
+  <script src="js/pronunciar.js"></script>
+  <script src="js/sincronizar.js"></script>
+  <script src="js/tutor.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

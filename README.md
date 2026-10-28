@@ -63,21 +63,33 @@ La app aparece en el cajón de aplicaciones como cualquier otra.
 
 | | |
 |---|---|
+| ☀️ **Hoy** | Una **sesión diaria** de unos 15 minutos que la app prepara por ti: repasos pendientes, algunos caracteres, palabras y frases nuevos, y pares de tonos. Se hace una vez al día; al terminar, un **reloj** marca cuánto falta para la siguiente. |
 | 🏯 **10 niveles** | De *Semillas* (一 人 口 木…) a *Bosque* (餐 照 慢…). Cada nivel tiene **Aprender**, **Practicar**, **Escribir** y **Desafío**. Con 70 % en el desafío desbloqueas el siguiente nivel. |
 | 📖 **Fichas** | Pinyin con colores por tono, significado, explicación o truco para recordar, composición (qué pieza da el significado y cuál el sonido), palabras de ejemplo y animación de trazos. |
 | ✍️ **Escritura** | Traza cada carácter con el dedo o el ratón en el orden correcto. Si te equivocas, la app te da pistas. |
-| 🎯 **7 tipos de pregunta** | Significado, carácter, pinyin, tono, escuchar, componer (女 + 子 = ?) y encontrar componentes. |
-| 📘 **Libro** | Las 10 lecciones de *Chino paso a paso 1*, con sus caracteres. |
-| 🎵 **Pinyin** | Los 4 tonos, iniciales y finales explicadas para hispanohablantes, reglas de cambio de tono y orden de los trazos. |
-| 🧩 **Piezas** | 121 familias de componentes: toca 木 y verás 林, 森, 休, 本… |
-| 🔁 **Repaso** | Repetición espaciada: cada carácter vuelve justo antes de que lo olvides. |
+| 📘 **Libro** | Las 10 lecciones de *Chino paso a paso 1*, con su **vocabulario** (283 palabras), **frases** (91) y caracteres. |
+| 🎯 **15 tipos de pregunta** | Significado, pinyin, tono, escuchar, componer (女 + 子 = ?), **ordenar las palabras de una frase**, traducir y *¿qué tonos oyes?*, entre otros. |
+| 🎙️ **Pronunciar** | Grábate y compara tu **curva de tono** con la ideal, sílaba a sílaba. El audio no sale de tu dispositivo. |
+| 🎵 **Pares de tonos** | Las 20 combinaciones de dos tonos, cada una con una palabra real, para escuchar y pronunciar. |
+| 💬 **Tutor** | Conversa en chino con una IA (Claude) en situaciones de cada lección: te corrige y te sugiere qué decir. Necesita tu propia clave de API de Anthropic, que se guarda solo en tu dispositivo. |
+| 🔄 **Sincronizar** | Pasa tu progreso entre computadora, iPhone y Android con un **código QR o un enlace**, sin cuentas. |
+| 🔊 **Voz** | Botón para silenciarla al instante, con control de volumen y velocidad. |
+| 🧩 **Pinyin y piezas** | Tonos, iniciales y finales explicados para hispanohablantes, y 121 familias de componentes. |
 
 ---
 
 ## ❓ Preguntas frecuentes
 
 **¿Se guarda mi progreso?**
-Sí, en el propio dispositivo. Cada dispositivo guarda el suyo por separado. Para pasarlo de uno a otro: en la pantalla de **Niveles**, abre **⚙️ Ajustes y progreso → Exportar progreso**, envíate el texto y en el otro dispositivo usa **Importar progreso**.
+Sí, en el propio dispositivo. Cada dispositivo guarda el suyo. Para pasarlo de uno a otro, ve a **Más → Sincronizar**: escanea el código QR con el otro dispositivo, o copia el enlace y ábrelo allí. Los dos progresos se fusionan, así que no pierdes nada.
+
+> En iPhone, la app instalada y Safari guardan el progreso por separado. Si al escanear el QR se abre Safari, copia el código y pégalo en **Más → Sincronizar → Recibir progreso** dentro de la app.
+
+**¿Cómo uso el tutor?**
+Crea una clave de API en [console.anthropic.com](https://console.anthropic.com/settings/keys) y pégala en la pestaña **Tutor**. Se guarda solo en ese dispositivo y nunca se sincroniza. Cada mensaje tiene un pequeño coste en tu cuenta de Anthropic.
+
+**¿Puedo hacer más de una sesión al día?**
+La sesión de **Hoy** es una por día, para que la repetición espaciada funcione bien. Después puedes hacer *práctica extra*, practicar cualquier nivel o lección y hablar con el tutor todo lo que quieras.
 
 **¿Cómo se actualiza?**
 Sola. Cuando hay una versión nueva, la app la descarga la próxima vez que la abres con internet.

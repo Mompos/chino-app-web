@@ -1,6 +1,6 @@
 // Service worker: guarda la app en el dispositivo para que funcione sin conexión.
 // VERSION la reescribe tools/build-web.js con un hash del contenido; al cambiar, se descarga la versión nueva.
-const VERSION = 'b205126150';
+const VERSION = 'c4ca39bcd1';
 const CACHE = 'hanzi-' + VERSION;
 const FUENTES = 'hanzi-fuentes';
 
@@ -13,11 +13,18 @@ const ARCHIVOS = [
   'js/data/pinyin.js',
   'js/data/trazos.js',
   'vendor/hanzi-writer.min.js',
+  'vendor/qrcode.js',
+  'js/items.js',
   'js/progreso.js',
   'js/audio.js',
   'js/vistas.js',
   'js/quiz.js',
+  'js/sesion.js',
+  'js/pronunciar.js',
+  'js/sincronizar.js',
+  'js/tutor.js',
   'js/app.js',
+  // vendor/anthropic-sdk.js (tutor) no se precarga: pesa 785 KB y el tutor necesita conexión de todas formas
   'icons/apple-touch-icon.png',
   'icons/icono-192.png',
   'icons/icono-512.png',

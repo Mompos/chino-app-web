@@ -58,9 +58,8 @@
   function inicio() {
     const st = P.estadisticas();
     const racha = P.racha();
-    const pend = P.pendientes().length;
+    const hecha = P.sesionHoy().completada;
     const total = Object.keys(D.caracteres).length;
-    const aj = P.ajustes();
     $app().innerHTML = `
       <section class="hero">
         <div>
@@ -73,14 +72,14 @@
           <div><b>${racha.dias || 0}</b><span>días de racha</span></div>
         </div>
       </section>
-      ${pend ? `<a class="aviso-repaso" href="#/repaso">🔁 Tienes <b>${pend}</b> caracteres para repasar hoy <span>Repasar →</span></a>` : ''}
+      ${hecha ? '' : `<a class="aviso-repaso" href="#/hoy">☀️ Tu sesión de hoy está pendiente <span>Empezar →</span></a>`}
       <section class="niveles">
         ${D.niveles.map(n => {
           const abierto = P.desbloqueado(n.nivel);
           const pr = P.nivel(n.nivel);
           const avance = Math.round(P.progresoNivel(n.nivel) * 100);
           return `
-          <a class="nivel-card ${abierto ? '' : 'bloqueado'}" href="${abierto ? '#/nivel/' + n.nivel : '#/'}" ${abierto ? '' : 'aria-disabled="true" data-bloqueado="1"'}>
+          <a class="nivel-card ${abierto ? '' : 'bloqueado'}" href="${abierto ? '#/nivel/' + n.nivel : '#/niveles'}" ${abierto ? '' : 'aria-disabled="true" data-bloqueado="1"'}>
             <div class="nivel-num">${n.nivel}</div>
             <div class="nivel-info">
               <h3>${esc(n.nombre)} <span class="hz">${esc(n.nombreZh)}</span></h3>
@@ -91,19 +90,7 @@
           </a>`;
         }).join('')}
       </section>
-      <details class="ajustes">
-        <summary>⚙️ Ajustes y progreso</summary>
-        <label class="fila"><input type="checkbox" id="aj-todo" ${aj.desbloquearTodo ? 'checked' : ''}> Desbloquear todos los niveles</label>
-        <label class="fila">Velocidad de la voz
-          <input type="range" id="aj-vel" min="0.5" max="1.2" step="0.1" value="${aj.velocidadVoz}"> <output>${aj.velocidadVoz}</output></label>
-        <p class="nota">${window.Voz.disponible() ? '🔊 Voz en chino disponible.' : '⚠️ No hay ninguna voz en chino instalada. En Windows: Configuración → Hora e idioma → Idioma y región → Agregar un idioma → Chino (simplificado, China), marcando «Texto a voz». Después reinicia la app.'}</p>
-        <div class="fila botones">
-          <button class="btn sec" id="aj-exportar">Exportar progreso</button>
-          <button class="btn sec" id="aj-importar">Importar progreso</button>
-          <button class="btn peligro" id="aj-reiniciar">Borrar progreso</button>
-        </div>
-        <p class="nota">Para desbloquear un nivel consigue al menos 1 estrella (70 %) en el desafío del nivel anterior.</p>
-      </details>
+      <p class="nota leyenda">Para desbloquear un nivel consigue al menos 1 estrella (70 %) en el desafío del nivel anterior. Los ajustes están en <a href="#/mas">Más</a>.</p>
       <footer class="creditos">
         Datos: ${D.fuentes.map(esc).join(' · ')}. Trazos animados con Hanzi Writer.
       </footer>`;
@@ -111,23 +98,93 @@
     $app().querySelectorAll('[data-bloqueado]').forEach(a => a.addEventListener('click', e => {
       e.preventDefault(); toast('Consigue al menos 1 estrella en el nivel anterior para desbloquearlo.');
     }));
-    document.getElementById('aj-todo').onchange = e => { P.cambiarAjuste('desbloquearTodo', e.target.checked); inicio(); };
-    const vel = document.getElementById('aj-vel');
-    vel.oninput = () => { vel.nextElementSibling.textContent = vel.value; P.cambiarAjuste('velocidadVoz', +vel.value); };
-    vel.onchange = () => window.Voz.decir('你好，我们一起学汉语');
+  }
+
+  // ── Más: herramientas y ajustes ─────────────────────────────────────
+  function mas() {
+    const aj = P.ajustes();
+    $app().innerHTML = `
+      <section class="portada"><h1>Más <span class="hz">更多</span></h1></section>
+      <section class="modos">
+        <a class="modo" href="#/tonos"><span class="ico">🎵</span><b>Pares de tonos</b><small>Las 20 combinaciones de dos sílabas: escucha, reconoce y pronuncia</small></a>
+        <a class="modo" href="#/pinyin"><span class="ico">🔤</span><b>Pinyin</b><small>Tonos, iniciales, finales y reglas para hispanohablantes</small></a>
+        <a class="modo" href="#/componentes"><span class="ico">🧩</span><b>Piezas</b><small>Familias de componentes de los caracteres</small></a>
+        <a class="modo" href="#/sincronizar"><span class="ico">🔄</span><b>Sincronizar</b><small>Pasa tu progreso entre computadora, iPhone y Android</small></a>
+      </section>
+      <section class="ajustes abierto" id="ajustes">
+        <h2>⚙️ Ajustes</h2>
+        <h3 class="grupo">Voz</h3>
+        <label class="fila interruptor"><input type="checkbox" id="aj-voz" ${aj.vozActiva ? 'checked' : ''}> Voz activada <small class="nota">(también con el botón 🔊 de arriba)</small></label>
+        <label class="fila">Volumen
+          <input type="range" id="aj-vol" min="0" max="1" step="0.05" value="${aj.volumen}" ${aj.vozActiva ? '' : 'disabled'}> <output>${Math.round(aj.volumen * 100)} %</output></label>
+        <label class="fila">Velocidad
+          <input type="range" id="aj-vel" min="0.5" max="1.2" step="0.1" value="${aj.velocidadVoz}" ${aj.vozActiva ? '' : 'disabled'}> <output>${aj.velocidadVoz}</output></label>
+        <p class="nota">${window.Voz.disponible() ? '🔊 Voz en chino disponible.' : '⚠️ No hay ninguna voz en chino instalada en este dispositivo. En Windows: Configuración → Hora e idioma → Idioma y región → Chino (simplificado, China) → ⋯ → Opciones de idioma → Voz → Descargar, y reinicia. Si usas la app desde Microsoft Edge, Edge trae voces chinas propias.'}</p>
+        <h3 class="grupo">Estudio</h3>
+        <label class="fila">Elementos nuevos por día
+          <input type="range" id="aj-nuevos" min="2" max="15" step="1" value="${aj.nuevosPorDia}"> <output>${aj.nuevosPorDia}</output></label>
+        <label class="fila interruptor"><input type="checkbox" id="aj-todo" ${aj.desbloquearTodo ? 'checked' : ''}> Desbloquear todos los niveles</label>
+        <h3 class="grupo">Progreso</h3>
+        <div class="fila botones">
+          <a class="btn sec" href="#/sincronizar">🔄 Sincronizar</a>
+          <button class="btn sec" id="aj-exportar">Exportar copia</button>
+          <button class="btn sec" id="aj-importar">Importar copia</button>
+          <button class="btn peligro" id="aj-reiniciar">Borrar progreso</button>
+        </div>
+      </section>
+      <footer class="creditos">Datos: ${D.fuentes.map(esc).join(' · ')}. Trazos animados con Hanzi Writer.</footer>`;
+
+    const deslizador = (id, clave, formato, alSoltar) => {
+      const el = document.getElementById(id);
+      el.oninput = () => { el.nextElementSibling.textContent = formato(+el.value); P.cambiarAjuste(clave, +el.value); window.Voz.pintarBoton(); };
+      if (alSoltar) el.onchange = alSoltar;
+    };
+    deslizador('aj-vol', 'volumen', v => Math.round(v * 100) + ' %', () => window.Voz.decir('你好'));
+    deslizador('aj-vel', 'velocidadVoz', v => v, () => window.Voz.decir('你好，我们一起学汉语'));
+    deslizador('aj-nuevos', 'nuevosPorDia', v => v);
+    document.getElementById('aj-voz').onchange = e => {
+      P.cambiarAjuste('vozActiva', e.target.checked);
+      if (e.target.checked && P.ajustes().volumen === 0) P.cambiarAjuste('volumen', 1);
+      if (!e.target.checked && 'speechSynthesis' in window) speechSynthesis.cancel();
+      window.Voz.pintarBoton();
+      mas();
+    };
+    document.getElementById('aj-todo').onchange = e => { P.cambiarAjuste('desbloquearTodo', e.target.checked); };
     document.getElementById('aj-exportar').onclick = async () => {
       const txt = P.exportar();
-      try { await navigator.clipboard.writeText(txt); toast('Progreso copiado al portapapeles.'); }
+      try { await navigator.clipboard.writeText(txt); toast('Copia del progreso en el portapapeles.'); }
       catch (e) { prompt('Copia este texto para guardar tu progreso:', txt); }
     };
     document.getElementById('aj-importar').onclick = () => {
-      const txt = prompt('Pega aquí el texto de tu progreso exportado:');
+      const txt = prompt('Pega aquí el texto de una copia exportada (sustituye tu progreso actual):');
       if (!txt) return;
-      try { P.importar(txt); toast('Progreso importado.'); inicio(); } catch (e) { toast('Ese texto no es un progreso válido.'); }
+      try { P.importar(txt); toast('Progreso importado.'); mas(); } catch (e) { toast('Ese texto no es una copia válida.'); }
     };
     document.getElementById('aj-reiniciar').onclick = () => {
-      if (confirm('¿Seguro que quieres borrar todo tu progreso? No se puede deshacer.')) { P.reiniciar(); inicio(); }
+      if (confirm('¿Seguro que quieres borrar todo tu progreso? No se puede deshacer.')) { P.reiniciar(); mas(); }
     };
+  }
+
+  // ── Pares de tonos ──────────────────────────────────────────────────
+  function tonos() {
+    const pares = D.vocabulario.tonos;
+    const nt = t => t === 5 ? 'neutro' : t;
+    $app().innerHTML = `
+      <nav class="migas"><a href="#/mas">← Más</a></nav>
+      <section class="portada"><h1>Pares de tonos <span class="hz">声调组合</span></h1>
+        <p>En chino casi nunca se oye un tono solo: se oyen en parejas. Estas son las 20 combinaciones de dos sílabas, cada una con una palabra real. Escúchalas, grábate y compara tu curva. Fíjate en 你好: dos terceros tonos seguidos se dicen 2.º + 3.º.</p>
+        <a class="btn" href="#/tonos/practicar">🎧 ¿Qué tonos oyes? (práctica)</a>
+      </section>
+      <div class="tabla-pares">
+        <div class="cab"></div>${[1, 2, 3, 4, 5].map(b => `<div class="cab ${tonoClase(b)}">+ ${nt(b)}</div>`).join('')}
+        ${[1, 2, 3, 4].map(a => `<div class="cab ${tonoClase(a)}">${a}</div>` + [1, 2, 3, 4, 5].map(b => {
+          const p = pares.find(x => x.t[0] === a && x.t[1] === b);
+          return p ? `<div class="par">
+            <span class="par-tonos"><span class="${tonoClase(a)}">${a}</span> + <span class="${tonoClase(b)}">${nt(b)}</span></span>
+            <button class="par-texto" data-decir="${esc(p.w)}"><span class="hz">${esc(p.w)}</span><span class="py">${esc(p.py)}</span><small>${esc(p.es)}</small></button>
+            ${window.Pronunciar.boton(p.w, p.py).replace('🎙️ Pronunciar', '🎙️')}</div>` : '<div></div>';
+        }).join('')).join('')}
+      </div>`;
   }
 
   // ── Portada de un nivel o lección ───────────────────────────────────
@@ -136,7 +193,7 @@
     const pr = esNivel ? P.nivel(cj.id) : null;
     const vistos = cj.chars.filter(c => P.char(c)?.visto).length;
     $app().innerHTML = `
-      <nav class="migas"><a href="${esNivel ? '#/' : '#/libro'}">← ${esNivel ? 'Niveles' : 'Libro'}</a></nav>
+      <nav class="migas"><a href="${esNivel ? '#/niveles' : '#/libro'}">← ${esNivel ? 'Niveles' : 'Libro'}</a></nav>
       <section class="portada">
         <div>
           <h1>${esc(cj.titulo)} <span class="hz">${esc(cj.tituloZh)}</span></h1>
@@ -147,8 +204,12 @@
         <a class="modo" href="${cj.ruta}/aprender"><span class="ico">📖</span><b>Aprender</b><small>Fichas con pinyin, significado, componentes y trazos</small></a>
         <a class="modo" href="${cj.ruta}/practicar"><span class="ico">🎯</span><b>Practicar</b><small>Preguntas sin límite para afianzar</small></a>
         <a class="modo" href="${cj.ruta}/escribir"><span class="ico">✍️</span><b>Escribir</b><small>Traza cada carácter en el orden correcto</small></a>
-        ${esNivel ? `<a class="modo destacado" href="${cj.ruta}/desafio"><span class="ico">🏆</span><b>Desafío</b><small>20 preguntas: gana estrellas y desbloquea el siguiente nivel</small></a>` : ''}
+        ${esNivel ? `<a class="modo destacado" href="${cj.ruta}/desafio"><span class="ico">🏆</span><b>Desafío</b><small>20 preguntas: gana estrellas y desbloquea el siguiente nivel</small></a>` : `
+        <a class="modo" href="${cj.ruta}/palabras"><span class="ico">🗂️</span><b>Palabras</b><small>Vocabulario de la lección: significado, pinyin y escucha</small></a>
+        <a class="modo destacado" href="${cj.ruta}/frases"><span class="ico">💬</span><b>Frases</b><small>Ordena, traduce y entiende frases con lo aprendido</small></a>`}
       </section>
+      ${esNivel ? '' : vocabularioLeccion(cj.id)}
+      <h2>Caracteres</h2>
       <section class="rejilla">
         ${cj.chars.map(c => {
           const ch = D.caracteres[c];
@@ -160,6 +221,25 @@
         }).join('')}
       </section>
       <p class="nota leyenda">El color del borde indica tu dominio: <span class="chip dom0">新</span> nuevo → <span class="chip dom5">精</span> dominado.</p>`;
+  }
+
+  // Vocabulario y frases de una lección del libro
+  function vocabularioLeccion(l) {
+    const palabras = window.Items.palabrasDe(l);
+    const frases = window.Items.frasesDe(l);
+    const pron = (t, py) => window.Pronunciar ? window.Pronunciar.boton(t, py).replace('🎙️ Pronunciar', '🎙️') : '';
+    return `
+      <h2>Vocabulario <small>生词</small></h2>
+      <ul class="lista-vocab">${palabras.map(p => `
+        <li class="dom${P.dominio(p.id)}">${hablar(p.w)}
+          ${[...p.w].length === 1 && D.caracteres[p.w] ? `<a class="hz" href="#/caracter/${encodeURIComponent(p.w)}">${esc(p.w)}</a>` : `<span class="hz">${esc(p.w)}</span>`}
+          <span class="py">${esc(p.py)}</span><span class="sig">${esc(p.es)}</span>${pron(p.w, p.py)}</li>`).join('')}
+      </ul>
+      <h2>Frases <small>句子</small></h2>
+      <ul class="lista-frases">${frases.map(f => `
+        <li class="dom${P.dominio(f.id)}">${hablar(f.zh)}
+          <div><span class="hz">${esc(f.zh)}</span><span class="py">${esc(f.py)}</span><span class="sig">${esc(f.es)}</span></div>${pron(f.zh, f.py)}</li>`).join('')}
+      </ul>`;
   }
 
   // ── Ficha completa de un carácter ───────────────────────────────────
@@ -177,6 +257,7 @@
           <div class="botones-trazo">
             <button class="btn sec" data-accion="animar">▶ Ver trazos</button>
             ${hablar(c)}
+            ${window.Pronunciar ? window.Pronunciar.boton(c, ch.pinyin.split(/[\/ ]/)[0]).replace('🎙️ Pronunciar', '🎙️') : ''}
           </div>
           <dl class="meta">
             <div><dt>Trazos</dt><dd>${ch.trazos}</dd></div>
@@ -346,7 +427,7 @@
     $app().innerHTML = `
       <section class="portada"><h1>Pinyin <span class="hz">拼音</span></h1>
         <p>El pinyin es la escritura del chino con letras latinas. Cada sílaba tiene una <b>inicial</b> (consonante), una <b>final</b> (vocales, a veces con n/ng) y un <b>tono</b>. Pulsa cualquier ejemplo para escucharlo.</p>
-        <a class="btn" href="#/pinyin/practicar">🎵 Practicar tonos</a>
+        <div class="fila botones"><a class="btn" href="#/pinyin/practicar">🎵 Practicar tonos</a> <a class="btn sec" href="#/tonos">Pares de tonos y pronunciación 🎙️</a></div>
       </section>
       <h2>Los 4 tonos (+ el neutro)</h2>
       <p class="nota">El tono cambia el significado: mā (mamá), má (cáñamo), mǎ (caballo), mà (regañar). Los colores de los tonos se mantienen en toda la app.</p>
@@ -433,22 +514,17 @@
       </div>`;
   }
 
-  // ── Repaso ──────────────────────────────────────────────────────────
-  function repaso() {
-    const pend = P.pendientes();
-    const deb = P.debiles(20);
-    $app().innerHTML = `
-      <section class="portada"><h1>Repaso <span class="hz">复习</span></h1>
-        <p>La repetición espaciada te pregunta cada carácter justo antes de que lo olvides: si aciertas, vuelve en 1, 2, 4, 8 y 16 días; si fallas, vuelve hoy.</p></section>
-      ${pend.length ? `
-        <div class="caja-repaso"><b>${pend.length}</b> caracteres pendientes hoy
-          <div class="chips">${pend.slice(0, 40).map(chip).join('')}</div>
-          <a class="btn" href="#/repaso/empezar">Empezar repaso</a></div>`
-      : deb.length ? `
-        <div class="caja-repaso">🎉 ¡Nada pendiente por hoy! ¿Quieres reforzar tus caracteres más débiles?
-          <div class="chips">${deb.map(chip).join('')}</div>
-          <a class="btn" href="#/repaso/empezar">Repasar los más débiles</a></div>`
-      : `<div class="caja-repaso">Aún no has estudiado ningún carácter. Empieza por el <a href="#/nivel/1">nivel 1</a>.</div>`}`;
+  // Ficha pequeña de cualquier elemento (carácter, palabra o frase) para listas de fallos
+  function chipItem(id) {
+    if (D.caracteres[id]) return chip(id);
+    const it = window.Items.get(id);
+    return it ? `<span class="chip chip-texto dom${P.dominio(id)}" title="${esc(it.pinyin + ' · ' + it.significado)}">${esc(it.texto)}</span>` : '';
+  }
+
+  // Monta la animación de trazos de un carácter en el #hw de la página y la reproduce
+  function montarTrazos(c) {
+    montarWriter(c);
+    setTimeout(() => writer && writer.animateCharacter(), 400);
   }
 
   // ── Utilidades compartidas ──────────────────────────────────────────
@@ -478,5 +554,5 @@
     if (a && writer && !a.closest('.escribir')) { writer.animateCharacter(); }
   });
 
-  window.Vistas = { inicio, portada, aprender, escribir, verCaracter, pinyin, componentes, libro, repaso, conjunto, teclas, toast, esc, tonoClase, sinTono, hablar, estrellas, chip, ficha };
+  window.Vistas = { inicio, mas, tonos, portada, aprender, escribir, verCaracter, pinyin, componentes, libro, conjunto, teclas, toast, esc, tonoClase, sinTono, hablar, estrellas, chip, chipItem, ficha, montarTrazos };
 })();
