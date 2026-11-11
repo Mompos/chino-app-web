@@ -481,6 +481,27 @@ textarea.campo { resize: vertical; font-family: ui-monospace, monospace; font-si
 .ajustes input[type=range] { flex: 1; max-width: 260px; accent-color: var(--rojo); }
 .interruptor input { width: 1.2rem; height: 1.2rem; accent-color: var(--rojo); }
 
+/* Valoración tras acertar (FSRS) */
+.valoracion { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: center; margin-top: .4rem; }
+.valoracion .nota { width: 100%; text-align: center; margin: 0; }
+
+/* Escribir el pinyin */
+.escribir-py { display: flex; gap: .5rem; max-width: 420px; margin: 0 auto; }
+.campo-py { font: 700 1.4rem 'Nunito', sans-serif; text-align: center; letter-spacing: .03em; }
+.campo-py.bien { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, var(--tarjeta)); }
+.campo-py.mal { border-color: var(--mal); background: color-mix(in srgb, var(--mal) 8%, var(--tarjeta)); }
+.detalle-py { list-style: none; padding: 0; margin: .4rem 0; display: grid; gap: .2rem; font-size: .95rem; }
+.campo-corto { flex: 0 1 auto; width: auto; max-width: 100%; }
+
+/* Modo clase */
+.caja-clase { text-align: center; margin: .5rem 0 1rem; }
+.chip-leccion {
+  display: inline-block; padding: .4rem .9rem; border-radius: 999px; background: var(--tarjeta); border: 1px solid var(--borde);
+  color: var(--tinta); text-decoration: none; font-weight: 700; margin-bottom: .4rem;
+}
+.etq-actual { display: inline-block; font-size: .8rem; font-weight: 800; color: var(--jade); }
+.leccion.actual { border-color: var(--jade); box-shadow: 0 0 0 2px color-mix(in srgb, var(--jade) 30%, transparent); }
+
 /* Pantallas táctiles (iPhone, Android, tabletas) */
 a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .escribir .hw, .escribir .trazos-caja { touch-action: none; -webkit-user-select: none; user-select: none; }

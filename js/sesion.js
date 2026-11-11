@@ -17,20 +17,80 @@
   // Un elemento de texto se puede presentar cuando ya se conocen todos sus caracteres con ficha
   const listo = texto => { const cs = I.caracteresDe(texto); return cs.length > 0 && cs.every(c => P.visto(c)); };
 
+  // Modo clase (Ajustes → leccionActual): lo nuevo sale primero de las lecciones del libro hasta la actual
   function elegirNuevos() {
     const cupo = P.ajustes().nuevosPorDia || 6;
-    const palabras = I.palabrasRepaso.filter(id => !P.visto(id) && listo(I.get(id).texto))
+    const L = P.ajustes().leccionActual || 0;
+    const enCurso = l => !L || (l && l <= L);
+    const palabras = I.palabrasRepaso.filter(id => !P.visto(id) && enCurso(I.get(id).leccion) && listo(I.get(id).texto))
       .sort((a, b) => I.get(a).leccion - I.get(b).leccion).slice(0, 2);
-    const frases = D.vocabulario.frases.filter(f => !P.visto(f.id) && listo(f.zh)).slice(0, 1).map(f => f.id);
+    const frases = D.vocabulario.frases.filter(f => !P.visto(f.id) && enCurso(f.l) && listo(f.zh)).slice(0, 1).map(f => f.id);
+    const cupoChars = cupo - palabras.length - frases.length;
     const chars = [];
+    const tomar = c => { if (chars.length < cupoChars && !P.visto(c) && !chars.includes(c)) chars.push(c); };
+    if (L) D.libro.slice(0, L).forEach(lec => [...lec.caracteres].forEach(tomar));
     for (const n of D.niveles) {
       if (!P.desbloqueado(n.nivel)) break;
-      for (const c of n.caracteres) {
-        if (chars.length >= cupo - palabras.length - frases.length) break;
-        if (!P.visto(c)) chars.push(c);
-      }
+      n.caracteres.forEach(tomar);
     }
     return [...chars, ...palabras, ...frases];
+  }
+
+  // ── Modo clase ──
+  function htmlClase() {
+    const L = P.ajustes().leccionActual || 0;
+    if (!L) return `<p class="nota centrada-txt">📍 ¿Vas a clase con <i>Chino paso a paso</i>? <a href="#/libro">Indica en qué lección vas</a> y la app se adaptará a tu curso.</p>`;
+    const lec = D.libro[L - 1], sig = D.libro[L];
+    return `
+      <section class="caja-clase">
+        <a class="chip-leccion" href="#/libro/${L}">📍 Lección ${L} · <span class="hz">${esc(lec.titulo)}</span> ${esc(lec.tituloEs)}</a>
+        <div class="fila botones centrada">
+          ${sig ? `<a class="btn sec" href="#/clase/antes">📖 Antes de clase: avance de la lección ${L + 1}</a>` : ''}
+          <a class="btn sec" href="#/clase/despues">🔁 Después de clase: repaso de la lección ${L}</a>
+        </div>
+      </section>`;
+  }
+
+  // Antes de clase: fichas del vocabulario de la lección siguiente (solo verlas: no cuentan para el repaso)
+  function antesDeClase(k = 0) {
+    const L = (P.ajustes().leccionActual || 0) + 1;
+    const palabras = I.palabrasDe(L);
+    if (!palabras.length) { location.hash = '#/hoy'; return; }
+    if (k >= palabras.length) {
+      $app().innerHTML = `
+        <section class="final">
+          <h1>¡Listo para la clase! 准备好了!</h1>
+          <p>Has visto las ${palabras.length} palabras nuevas de la lección ${L}. En clase te sonarán: así se aprenden mejor.</p>
+          <div class="fila botones centrada"><a class="btn" href="#/libro/${L}">Ver la lección ${L}</a><a class="btn sec" href="#/hoy">Volver a Hoy</a></div>
+        </section>`;
+      return;
+    }
+    const p = palabras[k];
+    $app().innerHTML = `
+      <nav class="migas"><a href="#/hoy">← Hoy</a><span class="marcador">Avance de la lección ${L} · ${k + 1}/${palabras.length}</span></nav>
+      <div class="progreso-fino"><span style="width:${(k + 1) / palabras.length * 100}%"></span></div>
+      <article class="ficha ficha-texto">
+        <div class="cabecera-char col">
+          <span class="hz palabra-grande">${esc(p.w)}</span>
+          <div class="py grande">${esc(p.py)}</div>
+          <div class="significado">${esc(p.es)}</div>
+          <div class="fila centrada">${V.hablar(p.w)} ${window.Pronunciar ? window.Pronunciar.boton(p.w, p.py) : ''}</div>
+        </div>
+      </article>
+      <div class="paginador"><button class="btn sec" id="atras" ${k ? '' : 'disabled'}>← Anterior</button>
+        <button class="btn" id="seguir">Siguiente →</button></div>`;
+    setTimeout(() => window.Voz.decir(p.w), 300);
+    document.getElementById('seguir').onclick = () => antesDeClase(k + 1);
+    document.getElementById('atras').onclick = () => k && antesDeClase(k - 1);
+    V.teclas({ Enter: () => antesDeClase(k + 1), ArrowRight: () => antesDeClase(k + 1), ArrowLeft: () => k && antesDeClase(k - 1) });
+  }
+
+  // Después de clase: preguntas sobre caracteres, palabras y frases de la lección actual
+  function despuesDeClase() {
+    const L = P.ajustes().leccionActual || 0;
+    if (!L) { location.hash = '#/libro'; return; }
+    const ids = [...D.libro[L - 1].caracteres, ...I.palabrasDe(L).map(p => p.id).filter(id => I.palabrasRepaso.includes(id)), ...I.frasesDe(L).map(f => f.id)];
+    window.Quiz.iniciar({ titulo: `Después de clase · Lección ${L}`, volver: '#/hoy', chars: ids, n: 20, modo: 'practica' });
   }
 
   function preparar() {
@@ -92,7 +152,7 @@
       <section class="portada"><h1>Hoy <span class="hz">今天</span></h1>
         <p>🔥 ${plural(racha.dias || 0, 'día', 'días')} de racha · ${plural(st.vistos, 'carácter', 'caracteres')} · ${plural(st.palabras, 'palabra', 'palabras')} · ${plural(st.frases, 'frase', 'frases')}</p></section>`;
     if (s.completada) {
-      $app().innerHTML = cabecera + htmlCompletada(s);
+      $app().innerHTML = cabecera + htmlCompletada(s) + htmlClase();
       arrancarReloj();
       return;
     }
@@ -111,7 +171,7 @@
         ${plan.nuevos.length ? `<div class="chips centrada">${plan.nuevos.map(id => `<span class="chip chip-texto">${esc(I.get(id).texto)}</span>`).join('')}</div>` : ''}`}
         <p class="nota">Unos ${minutos(plan)} minutos. Solo se puede hacer una vez al día.</p>
         <a class="btn grande-btn" href="#/hoy/empezar">Empezar ▶</a>
-      </section>`;
+      </section>` + htmlClase();
   }
 
   // ── Desarrollo de la sesión ──
@@ -194,5 +254,5 @@
     return n ? String(Math.min(n, 99)) : '';
   }
 
-  window.Sesion = { pantalla, empezar, extra, insignia, detenerReloj, formatear };
+  window.Sesion = { pantalla, empezar, extra, insignia, detenerReloj, formatear, antesDeClase, despuesDeClase };
 })();

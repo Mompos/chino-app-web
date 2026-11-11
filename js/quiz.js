@@ -216,6 +216,26 @@
       };
     },
 
+    // ── Producción: recordar sin opciones ──
+    escribirPinyin(id) {
+      const it = I.get(id);
+      const pinyin = it.tipo === 'caracter' ? it.pinyin.split(/[\/ ]/)[0] : it.pinyin;
+      return {
+        tipo: 'escribirPinyin', id, escribir: 'pinyin', enunciado: 'Escribe el pinyin con sus tonos',
+        estimulo: `<span class="hz ${it.tipo === 'caracter' ? 'enorme' : 'palabra-grande'}">${esc(it.texto)}</span><div class="sig-peq">${esc(it.significado)}</div>`,
+        solucion: pinyin, audio: it.texto,
+        explicacion: `${it.texto} se escribe ${pinyin}.`,
+      };
+    },
+    escribirCaracter(id) {
+      const it = I.get(id);
+      return {
+        tipo: 'escribirCaracter', id, escribir: 'caracter', enunciado: 'Escribe el carácter de memoria',
+        estimulo: `<div class="significado grande">${esc(it.significado)}</div><div class="py grande ${V.tonoClase(it.tono)}">${esc(it.pinyin)}</div>`,
+        audio: it.texto, explicacion: D.caracteres[id].descripcion,
+      };
+    },
+
     // ── Pares de tonos ──
     parTonos(id) {
       const it = I.get(id);
@@ -237,14 +257,18 @@
     },
   };
 
+  // data-repetir: "escuchar otra vez" repite con la misma voz (las preguntas de escucha varían de voz)
   function botonEscuchar(texto) {
-    return `<button class="btn-escuchar" data-decir="${esc(texto)}">🔊<small>Pulsa para escuchar otra vez</small></button>`;
+    return `<button class="btn-escuchar" data-decir="${esc(texto)}" data-repetir>🔊<small>Pulsa para escuchar otra vez</small></button>`;
   }
 
-  // Tipos de pregunta que tienen sentido para cada elemento
+  // Tipos de pregunta que tienen sentido para cada elemento.
+  // Los de producción (escribir el pinyin, escribir el carácter de memoria) solo cuando el elemento ya se ha
+  // practicado algo: recordar sin opciones fija más que reconocer, pero exige haberlo visto antes.
   function tiposPosibles(id) {
     const it = I.get(id);
     const voz = window.Voz.disponible() && window.Voz.activa();
+    const practicado = P.dominio(id) >= 1 && (P.char(id)?.aciertos || 0) >= 1;
     if (it.tipo === 'caracter') {
       const ch = D.caracteres[id];
       const t = ['significado', 'caracter', 'pinyin', 'tono'];
@@ -252,9 +276,10 @@
       const comps = ch.componentes.filter(k => k.c && k.c !== '—' && k.c !== id);
       if (comps.length >= 2) t.push('componer');
       if (comps.length >= 1) t.push('componente');
+      if (practicado) t.push('escribirPinyin', 'escribirPinyin', ...(window.HanziWriter && window.TRAZOS?.[id] ? ['escribirCaracter', 'escribirCaracter'] : []));
       return t;
     }
-    if (it.tipo === 'palabra') return ['palabraSignificado', 'palabraTexto', 'palabraPinyin', ...(voz ? ['palabraEscuchar'] : [])];
+    if (it.tipo === 'palabra') return ['palabraSignificado', 'palabraTexto', 'palabraPinyin', ...(voz ? ['palabraEscuchar'] : []), ...(practicado ? ['escribirPinyin', 'escribirPinyin'] : [])];
     if (it.tipo === 'frase') {
       const piezas = it.tokens.filter(t => !PUNTUACION.test(t)).length;
       return [...(piezas >= 3 ? ['fraseOrdenar', 'fraseOrdenar'] : []), 'fraseTraducir', ...(voz ? ['fraseEscuchar'] : [])];
@@ -304,22 +329,82 @@
       <section class="pregunta">
         <p class="enunciado-q">${q.enunciado}${total ? ` <small>${s.i + 1}/${total}</small>` : ''}</p>
         <div class="estimulo">${q.estimulo}</div>
-        ${q.ordenar ? htmlOrdenar(q) : `
+        ${q.ordenar ? htmlOrdenar(q) : q.escribir === 'pinyin' ? htmlPinyin() : q.escribir === 'caracter' ? htmlCaracter() : `
         <div class="opciones ${q.opciones.length === 5 ? 'cinco' : ''}">
           ${q.opciones.map((o, k) => `<button class="opcion" data-k="${k}"><kbd>${k + 1}</kbd>${o.html}</button>`).join('')}
         </div>`}
         <div id="feedback" aria-live="polite"></div>
       </section>`;
-    if (q.autoAudio) setTimeout(() => window.Voz.decir(q.audio), 250);
+    // Las preguntas de escucha suenan cada vez con una voz distinta
+    if (q.autoAudio) setTimeout(() => window.Voz.decir(q.audio, undefined, { variar: true }), 250);
     const term = document.getElementById('terminar');
-    if (term) term.onclick = e => { e.preventDefault(); s.n = s.i; final(s); };
+    if (term) term.onclick = e => { e.preventDefault(); registrar(s); s.n = s.i; final(s); };
     const teclasQ = { Enter: () => s.respondida && siguiente(s) };
     if (q.ordenar) montarOrdenar(s, q);
+    else if (q.escribir === 'pinyin') montarPinyin(s, q);
+    else if (q.escribir === 'caracter') montarCaracter(s, q);
     else {
       $app().querySelectorAll('.opcion').forEach(b => b.onclick = () => responder(s, q.opciones[+b.dataset.k].valor, +b.dataset.k));
       q.opciones.forEach((o, k) => teclasQ[String(k + 1)] = () => !s.respondida && responder(s, o.valor, k));
     }
+    // Tras acertar, responder() añade: 1 = Difícil, 2 o Enter = Bien, 3 = Fácil (valoración para FSRS)
     V.teclas(teclasQ);
+    s.teclasQ = teclasQ;
+  }
+
+  // ── Escribir el pinyin ──
+  function htmlPinyin() {
+    return `
+      <form class="escribir-py" id="form-py" autocomplete="off">
+        <input class="campo campo-py" id="campo-py" inputmode="text" autocapitalize="off" autocorrect="off" spellcheck="false"
+          placeholder="ni3 hao3" aria-label="Pinyin con números de tono">
+        <button class="btn">Comprobar</button>
+      </form>
+      <p class="nota centrada-txt">Escribe el tono con un número tras cada sílaba (5 o nada = neutro). ü se escribe <b>v</b>: nv3 = nǚ.</p>`;
+  }
+  function montarPinyin(s, q) {
+    const campo = document.getElementById('campo-py');
+    campo.focus({ preventScroll: true });
+    document.getElementById('form-py').onsubmit = e => {
+      e.preventDefault();
+      if (s.respondida || !campo.value.trim()) return;
+      const r = window.Pronunciar.compararPinyin(campo.value, q.solucion);
+      campo.disabled = true;
+      campo.classList.add(r.ok ? 'bien' : 'mal');
+      q.detallePinyin = r;
+      responder(s, campo.value, -1, r.ok);
+    };
+  }
+  function detallePinyinHTML(r) {
+    if (!r || r.ok) return '';
+    const marcar = d => d.sonido && d.tono ? '✅' : d.sonido ? '🎵' : '✗';
+    return `<ul class="detalle-py">${r.detalle.map(d => `<li>${marcar(d)} <b>${esc(d.esperado.s)}${d.esperado.t}</b>${d.escrito ? ` · escribiste ${esc(d.escrito.s)}${d.escrito.t}` : ' · falta'}${d.sonido && !d.tono ? ' (el sonido está bien, el tono no)' : ''}</li>`).join('')}</ul>
+      ${r.faltanTonos ? '<p class="aviso-mal">Recuerda escribir el número de tono tras cada sílaba.</p>' : ''}`;
+  }
+
+  // ── Escribir el carácter de memoria (sin guía) ──
+  function htmlCaracter() {
+    return `
+      <div class="trazos-caja grande"><div id="hw" class="hw cuadricula"></div></div>
+      <div class="fila botones centrada"><button class="btn sec" id="no-recuerdo">No me acuerdo</button></div>`;
+  }
+  function montarCaracter(s, q) {
+    const ch = D.caracteres[q.id];
+    const w = V.montarWriter(q.id, { showOutline: false, showCharacter: false, width: 260, height: 260 });
+    if (!w) return responder(s, null, -1, false);
+    const caja = document.querySelector('.trazos-caja');
+    // En pantallas táctiles, que trazar no desplace la página
+    caja.style.touchAction = 'none';
+    w.quiz({
+      showHintAfterMisses: 3,
+      onComplete: r => { if (!s.respondida) responder(s, null, -1, r.totalMistakes <= Math.max(1, Math.floor(ch.trazos / 4))); },
+    });
+    document.getElementById('no-recuerdo').onclick = () => {
+      if (s.respondida) return;
+      responder(s, null, -1, false);
+      const ver = V.montarWriter(q.id, { width: 260, height: 260 });
+      ver && ver.animateCharacter();
+    };
   }
 
   // Ejercicio de ordenar: se tocan las fichas en orden; se pueden devolver tocándolas otra vez
@@ -367,8 +452,21 @@
     const q = s.preguntas[s.i];
     const bien = forzado !== undefined ? forzado : valor === q.correcta;
     if (bien) s.aciertos++; else s.fallos.push(q.id);
-    if (!s.sinSRS && q.srs !== false) P.responder(q.id, bien);
-    if (!q.ordenar) {
+    // El registro en la repetición espaciada espera a la valoración (Difícil/Bien/Fácil) o al «Continuar»
+    s.pendiente = !s.sinSRS && q.srs !== false ? { id: q.id, bien } : null;
+    // Reaprendizaje en la sesión de hoy: lo fallado vuelve a preguntarse al final (una vez)
+    if (!bien && s.modo === 'sesion') {
+      s.repetidos = s.repetidos || new Set();
+      if (!s.repetidos.has(q.id)) {
+        s.repetidos.add(q.id);
+        const otra = pregunta(q.id, s.preguntas.map(p => p.id));
+        otra.repaso = true; // la nota de FSRS ya se puso al fallar
+        otra.srs = false;
+        s.preguntas.push(otra);
+        s.n = s.preguntas.length;
+      }
+    }
+    if (!q.ordenar && !q.escribir) {
       $app().querySelectorAll('.opcion').forEach((b, j) => {
         b.disabled = true;
         if (q.opciones[j].valor === q.correcta) b.classList.add('correcta');
@@ -384,15 +482,33 @@
         <div class="fb-titulo">${bien ? '¡Correcto! 🎉' : 'No exactamente…'}</div>
         <div class="fb-char">${enlace}
           <span class="py ${it.tono ? V.tonoClase(it.tono) : ''}">${esc(it.pinyin)}</span> <span>${esc(it.significado)}</span> ${V.hablar(it.texto)}</div>
+        ${q.escribir === 'pinyin' ? detallePinyinHTML(q.detallePinyin) : ''}
         <p>${esc(q.explicacion)}</p>
-        <button class="btn" id="siguiente">Continuar <kbd>Enter</kbd></button>
+        ${q.repaso ? '<p class="nota">↻ Repaso de un fallo anterior de esta sesión.</p>' : ''}
+        ${bien && s.pendiente ? `
+        <div class="valoracion" role="group" aria-label="¿Cómo te resultó?">
+          <span class="nota">¿Cómo te resultó?</span>
+          <button class="btn sec" data-nota="2">😓 Difícil <kbd>1</kbd></button>
+          <button class="btn" id="siguiente" data-nota="3">🙂 Bien <kbd>Enter</kbd></button>
+          <button class="btn sec" data-nota="4">😎 Fácil <kbd>3</kbd></button>
+        </div>` : `<button class="btn" id="siguiente">Continuar <kbd>Enter</kbd></button>`}
       </div>`;
-    document.getElementById('siguiente').onclick = () => siguiente(s);
+    document.querySelectorAll('#feedback [data-nota]').forEach(b => b.onclick = () => siguiente(s, +b.dataset.nota));
+    document.getElementById('siguiente').onclick = () => siguiente(s, 3);
     document.getElementById('siguiente').focus({ preventScroll: true });
+    if (s.teclasQ) {
+      s.teclasQ.Enter = () => siguiente(s, 3);
+      if (bien && s.pendiente) { s.teclasQ['1'] = () => siguiente(s, 2); s.teclasQ['2'] = () => siguiente(s, 3); s.teclasQ['3'] = () => siguiente(s, 4); }
+    }
     if (bien) window.Voz.decir(q.audio);
   }
 
-  function siguiente(s) { s.i++; pintar(s); }
+  // Guarda en la repetición espaciada la respuesta pendiente (con su valoración)
+  function registrar(s, nota = 3) {
+    if (s.pendiente) { P.responder(s.pendiente.id, s.pendiente.bien, nota); s.pendiente = null; }
+  }
+
+  function siguiente(s, nota = 3) { registrar(s, nota); s.i++; pintar(s); }
 
   function final(s) {
     V.teclas(null);

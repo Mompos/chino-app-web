@@ -33,6 +33,12 @@
       else window.Sesion.pantalla();
     }
     else if (a === 'repaso') return (location.hash = '#/hoy'); // la antigua pantalla de repaso es ahora la sesión de hoy
+    else if (a === 'clase') {
+      marcarNav('hoy');
+      if (b === 'antes') window.Sesion.antesDeClase();
+      else if (b === 'despues') window.Sesion.despuesDeClase();
+      else location.hash = '#/hoy';
+    }
     else if (a === 'niveles') { marcarNav('niveles'); V.inicio(); }
     else if ((a === 'nivel' || a === 'libro') && b) {
       marcarNav(a === 'nivel' ? 'niveles' : 'libro');

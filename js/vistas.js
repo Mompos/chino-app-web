@@ -119,10 +119,16 @@
           <input type="range" id="aj-vol" min="0" max="1" step="0.05" value="${aj.volumen}" ${aj.vozActiva ? '' : 'disabled'}> <output>${Math.round(aj.volumen * 100)} %</output></label>
         <label class="fila">Velocidad
           <input type="range" id="aj-vel" min="0.5" max="1.2" step="0.1" value="${aj.velocidadVoz}" ${aj.vozActiva ? '' : 'disabled'}> <output>${aj.velocidadVoz}</output></label>
-        <p class="nota">${window.Voz.disponible() ? '🔊 Voz en chino disponible.' : '⚠️ No hay ninguna voz en chino instalada en este dispositivo. En Windows: Configuración → Hora e idioma → Idioma y región → Chino (simplificado, China) → ⋯ → Opciones de idioma → Voz → Descargar, y reinicia. Si usas la app desde Microsoft Edge, Edge trae voces chinas propias.'}</p>
+        <label class="fila interruptor"><input type="checkbox" id="aj-variar" ${aj.variarVoces ? 'checked' : ''}> Variar las voces en los ejercicios de escucha <small class="nota">(${window.Voz.numeroVoces()} voces chinas en este dispositivo; oír voces distintas entrena mejor el oído para los tonos)</small></label>
+        <p class="nota">${window.Voz.disponible() ? '🔊 Voz en chino disponible.' :'⚠️ No hay ninguna voz en chino instalada en este dispositivo. En Windows: Configuración → Hora e idioma → Idioma y región → Chino (simplificado, China) → ⋯ → Opciones de idioma → Voz → Descargar, y reinicia. Si usas la app desde Microsoft Edge, Edge trae voces chinas propias.'}</p>
         <h3 class="grupo">Estudio</h3>
         <label class="fila">Elementos nuevos por día
           <input type="range" id="aj-nuevos" min="2" max="15" step="1" value="${aj.nuevosPorDia}"> <output>${aj.nuevosPorDia}</output></label>
+        <label class="fila">Mi lección del libro
+          <select id="aj-leccion" class="campo campo-corto">
+            <option value="0" ${!aj.leccionActual ? 'selected' : ''}>Sin indicar (seguir los niveles)</option>
+            ${D.libro.map(l => `<option value="${l.leccion}" ${aj.leccionActual === l.leccion ? 'selected' : ''}>Lección ${l.leccion} · ${esc(l.tituloEs)}</option>`).join('')}
+          </select></label>
         <label class="fila interruptor"><input type="checkbox" id="aj-todo" ${aj.desbloquearTodo ? 'checked' : ''}> Desbloquear todos los niveles</label>
         <h3 class="grupo">Progreso</h3>
         <div class="fila botones">
@@ -150,6 +156,8 @@
       mas();
     };
     document.getElementById('aj-todo').onchange = e => { P.cambiarAjuste('desbloquearTodo', e.target.checked); };
+    document.getElementById('aj-variar').onchange = e => { P.cambiarAjuste('variarVoces', e.target.checked); };
+    document.getElementById('aj-leccion').onchange = e => { P.cambiarAjuste('leccionActual', +e.target.value); toast(+e.target.value ? `📍 Lección ${e.target.value}: la sesión de hoy priorizará su contenido.` : 'Volviendo a seguir los niveles.'); };
     document.getElementById('aj-exportar').onclick = async () => {
       const txt = P.exportar();
       try { await navigator.clipboard.writeText(txt); toast('Copia del progreso en el portapapeles.'); }
@@ -208,6 +216,10 @@
         <a class="modo" href="${cj.ruta}/palabras"><span class="ico">🗂️</span><b>Palabras</b><small>Vocabulario de la lección: significado, pinyin y escucha</small></a>
         <a class="modo destacado" href="${cj.ruta}/frases"><span class="ico">💬</span><b>Frases</b><small>Ordena, traduce y entiende frases con lo aprendido</small></a>`}
       </section>
+      ${esNivel ? '' : `
+        <div class="fila botones">${P.ajustes().leccionActual === cj.id
+          ? '<span class="etq-actual">📍 Es tu lección actual</span>'
+          : `<button class="btn sec" id="marcar-leccion">📍 Estoy en esta lección</button>`}</div>`}
       ${esNivel ? '' : vocabularioLeccion(cj.id)}
       <h2>Caracteres</h2>
       <section class="rejilla">
@@ -221,6 +233,12 @@
         }).join('')}
       </section>
       <p class="nota leyenda">El color del borde indica tu dominio: <span class="chip dom0">新</span> nuevo → <span class="chip dom5">精</span> dominado.</p>`;
+    const marcar = document.getElementById('marcar-leccion');
+    if (marcar) marcar.onclick = () => {
+      P.cambiarAjuste('leccionActual', cj.id);
+      toast(`📍 Lección ${cj.id} marcada: la sesión de hoy priorizará su contenido.`);
+      portada(cj);
+    };
   }
 
   // Vocabulario y frases de una lección del libro
@@ -499,14 +517,15 @@
   function libro() {
     $app().innerHTML = `
       <section class="portada"><h1>Chino paso a paso 1 <span class="hz">汉语一步一步</span></h1>
-        <p>Los caracteres que se practican en cada lección del libro de ejercicios, para estudiar al mismo ritmo que el curso. Los niveles del juego mezclan estas lecciones según la dificultad de cada carácter; aquí los tienes en el orden del libro.</p></section>
+        <p>Vocabulario, frases y caracteres de cada lección, para estudiar al mismo ritmo que el curso. Entra en la lección en la que vas y pulsa <b>📍 Estoy en esta lección</b>: la sesión de hoy priorizará ese contenido.</p></section>
       <div class="lecciones">
         ${D.libro.map(l => {
           const vistos = [...l.caracteres].filter(c => P.char(c)?.visto).length;
+          const actual = P.ajustes().leccionActual === l.leccion;
           return `
-          <a class="leccion" href="#/libro/${l.leccion}">
+          <a class="leccion ${actual ? 'actual' : ''}" href="#/libro/${l.leccion}">
             <div class="nivel-num">${l.leccion}</div>
-            <div><h3><span class="hz">${esc(l.titulo)}</span></h3><p>${esc(l.tituloEs)}</p>
+            <div><h3><span class="hz">${esc(l.titulo)}</span>${actual ? ' <span class="etq-actual">📍 Tu lección</span>' : ''}</h3><p>${esc(l.tituloEs)}</p>
             <div class="muestra hz">${[...l.caracteres].slice(0, 12).join(' ')}${l.caracteres.length > 12 ? ' …' : ''}</div></div>
             <div class="nivel-estado"><small>${vistos}/${[...l.caracteres].length}</small></div>
           </a>`;
@@ -549,10 +568,11 @@
   // Delegación global: botones de audio y animación
   document.addEventListener('click', e => {
     const d = e.target.closest('[data-decir]');
-    if (d) { e.preventDefault(); window.Voz.decir(d.dataset.decir); return; }
+    // data-repetir: en ejercicios de escucha, repetir con la misma voz que sonó la primera vez
+    if (d) { e.preventDefault(); window.Voz.decir(d.dataset.decir, undefined, { repetir: 'repetir' in d.dataset }); return; }
     const a = e.target.closest('[data-accion="animar"]');
     if (a && writer && !a.closest('.escribir')) { writer.animateCharacter(); }
   });
 
-  window.Vistas = { inicio, mas, tonos, portada, aprender, escribir, verCaracter, pinyin, componentes, libro, conjunto, teclas, toast, esc, tonoClase, sinTono, hablar, estrellas, chip, chipItem, ficha, montarTrazos };
+  window.Vistas = { inicio, mas, tonos, portada, aprender, escribir, verCaracter, pinyin, componentes, libro, conjunto, teclas, toast, esc, tonoClase, sinTono, hablar, estrellas, chip, chipItem, ficha, montarTrazos, montarWriter };
 })();

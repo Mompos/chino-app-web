@@ -19,19 +19,36 @@
     return new Uint8Array(await new Response(flujo).arrayBuffer());
   }
 
-  // Solo lo necesario: cada elemento visto como [id, caja, aciertos, fallos, día del próximo repaso]
+  // Solo lo necesario. Versión 2: cada elemento visto como
+  //   [id, caja, aciertos, fallos, minuto del próximo repaso, tarjeta FSRS compacta o 0]
+  // tarjeta: [estabilidad, dificultad, estado, repasos, olvidos, minuto del último repaso, días programados, paso de aprendizaje]
+  // (La versión 1 guardaba el día del próximo repaso y no tenía tarjeta FSRS; se sigue aceptando.)
+  const MIN = 60 * 1000;
+  const r3 = x => Math.round(x * 1000) / 1000;
   function compactar() {
     const e = P.estado();
     return {
-      v: 1,
-      c: Object.entries(e.chars).filter(([, r]) => r.visto).map(([id, r]) => [id, r.caja, r.aciertos, r.fallos, Math.round(r.proximo / DIA)]),
+      v: 2,
+      c: Object.entries(e.chars).filter(([, r]) => r.visto).map(([id, r]) => {
+        const t = r.fsrs;
+        return [id, r.caja, r.aciertos, r.fallos, Math.round(r.proximo / MIN),
+          t ? [r3(t.stability), r3(t.difficulty), t.state, t.reps, t.lapses, t.last_review ? Math.round(t.last_review / MIN) : 0, t.scheduled_days, t.learning_steps || 0] : 0];
+      }),
       n: e.niveles, r: e.racha, s: e.sesion, u: e.ajustes.desbloquearTodo ? 1 : 0,
     };
   }
   function expandir(o) {
-    if (!o || o.v !== 1 || !Array.isArray(o.c)) throw new Error('formato');
+    if (!o || (o.v !== 1 && o.v !== 2) || !Array.isArray(o.c)) throw new Error('formato');
+    const unidad = o.v === 1 ? DIA : MIN;
     return {
-      chars: Object.fromEntries(o.c.map(([id, caja, aciertos, fallos, dia]) => [id, { caja, aciertos, fallos, visto: true, proximo: dia * DIA }])),
+      chars: Object.fromEntries(o.c.map(([id, caja, aciertos, fallos, cuando, t]) => {
+        const r = { caja, aciertos, fallos, visto: true, proximo: cuando * unidad };
+        if (Array.isArray(t)) {
+          r.fsrs = { due: r.proximo, stability: t[0], difficulty: t[1], state: t[2], reps: t[3], lapses: t[4],
+            last_review: t[5] ? t[5] * MIN : null, scheduled_days: t[6], learning_steps: t[7] };
+        }
+        return [id, r];
+      })),
       niveles: o.n || {}, racha: o.r || { dias: 0, ultimo: null }, sesion: o.s || {}, ajustes: { desbloquearTodo: !!o.u },
     };
   }

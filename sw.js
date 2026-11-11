@@ -1,6 +1,6 @@
 // Service worker: guarda la app en el dispositivo para que funcione sin conexión.
 // VERSION la reescribe tools/build-web.js con un hash del contenido; al cambiar, se descarga la versión nueva.
-const VERSION = 'c4ca39bcd1';
+const VERSION = 'd17c70a18c';
 const CACHE = 'hanzi-' + VERSION;
 const FUENTES = 'hanzi-fuentes';
 
@@ -14,6 +14,7 @@ const ARCHIVOS = [
   'js/data/trazos.js',
   'vendor/hanzi-writer.min.js',
   'vendor/qrcode.js',
+  'vendor/ts-fsrs.js',
   'js/items.js',
   'js/progreso.js',
   'js/audio.js',

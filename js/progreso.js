@@ -1,14 +1,51 @@
 // Progreso del alumno guardado en el navegador (localStorage).
-// Repetición espaciada tipo Leitner: cada elemento (carácter, palabra o frase, ver js/items.js)
-// está en una "caja" 0–5; acertar lo sube de caja (se repasa más tarde), fallar lo devuelve a la caja 0.
+// Repetición espaciada con FSRS (el algoritmo de Anki, librería ts-fsrs en vendor/): cada elemento
+// (carácter, palabra o frase, ver js/items.js) tiene una "tarjeta" con su estabilidad y dificultad,
+// y la siguiente fecha se calcula para repasarlo justo antes de olvidarlo (objetivo: 90 % de recuerdo).
+// La valoración de cada respuesta es: 1 = Otra vez (fallo), 2 = Difícil, 3 = Bien, 4 = Fácil.
+// Los registros antiguos (sistema Leitner por "cajas") se convierten la primera vez que se repasan.
 // La "sesión de hoy" se puede completar una sola vez por día (fecha local): así el repaso diario no se repite.
 (function () {
   const CLAVE = 'hanzi-paso-a-paso-v1';
   const DIA = 24 * 60 * 60 * 1000;
-  const INTERVALOS = [0, 1, 2, 4, 8, 16]; // días hasta el próximo repaso según la caja
+  const INTERVALOS = [0, 1, 2, 4, 8, 16]; // días del antiguo sistema Leitner (solo para convertir registros viejos)
   const ESTRELLAS = [0.7, 0.85, 1]; // % de aciertos para 1, 2 y 3 estrellas
   // (La clave de API del tutor NO va aquí: se guarda aparte para que nunca salga al exportar o sincronizar.)
-  const AJUSTES = { desbloquearTodo: false, velocidadVoz: 0.8, vozActiva: true, volumen: 1, nuevosPorDia: 6 };
+  const AJUSTES = { desbloquearTodo: false, velocidadVoz: 0.8, vozActiva: true, volumen: 1, nuevosPorDia: 6, variarVoces: true, leccionActual: 0 };
+
+  const F = window.FSRSLib;
+  const planificador = F ? F.fsrs(F.generatorParameters({ request_retention: 0.9, maximum_interval: 365, enable_fuzz: true })) : null;
+
+  // Tarjeta FSRS ⇄ objeto guardable (las fechas como milisegundos)
+  function aTarjeta(r) {
+    if (r.fsrs) {
+      const t = r.fsrs;
+      return { ...t, due: new Date(t.due), last_review: t.last_review ? new Date(t.last_review) : undefined };
+    }
+    const t = F.createEmptyCard(new Date());
+    if (r.visto && r.caja > 0) {
+      // Registro del sistema anterior: se aproxima su memoria con el intervalo de su caja
+      const dias = INTERVALOS[r.caja];
+      Object.assign(t, {
+        state: F.State.Review, stability: dias, difficulty: 5, reps: r.aciertos + r.fallos, lapses: r.fallos,
+        scheduled_days: dias, last_review: new Date(r.proximo - dias * DIA), due: new Date(r.proximo),
+      });
+    }
+    return t;
+  }
+  function guardarTarjeta(t) {
+    return {
+      due: +t.due, stability: t.stability, difficulty: t.difficulty, scheduled_days: t.scheduled_days,
+      reps: t.reps, lapses: t.lapses, learning_steps: t.learning_steps, state: t.state,
+      last_review: t.last_review ? +t.last_review : null,
+    };
+  }
+  // Dominio 0–5 a partir de la estabilidad (días que se tarda en bajar al 90 % de recuerdo)
+  function cajaDe(t) {
+    if (t.state !== F.State.Review) return 1;
+    const s = t.stability;
+    return s < 3 ? 1 : s < 7 ? 2 : s < 21 ? 3 : s < 60 ? 4 : 5;
+  }
 
   function vacio() {
     return { chars: {}, niveles: {}, ajustes: { ...AJUSTES }, racha: { dias: 0, ultimo: null }, sesion: { fecha: null, completada: false } };
@@ -61,12 +98,22 @@
       if (!r.visto) { r.visto = true; r.proximo = Date.now(); guardar(); }
     },
 
-    responder(id, correcto) {
+    // calificacion: 2 = Difícil, 3 = Bien (por defecto), 4 = Fácil; un fallo siempre es 1 = Otra vez
+    responder(id, correcto, calificacion = 3) {
       const r = registro(id);
       r.visto = true;
-      if (correcto) { r.aciertos++; r.caja = Math.min(5, r.caja + 1); }
-      else { r.fallos++; r.caja = 0; }
-      r.proximo = Date.now() + INTERVALOS[r.caja] * DIA;
+      if (correcto) r.aciertos++; else r.fallos++;
+      if (planificador) {
+        const nota = correcto ? Math.min(4, Math.max(2, calificacion)) : F.Rating.Again;
+        const t = planificador.next(aTarjeta(r), new Date(), nota).card;
+        r.fsrs = guardarTarjeta(t);
+        r.proximo = +t.due;
+        r.caja = correcto ? cajaDe(t) : 0;
+      } else {
+        // Sin la librería FSRS (no debería pasar): sistema Leitner de respaldo
+        r.caja = correcto ? Math.min(5, r.caja + 1) : 0;
+        r.proximo = Date.now() + INTERVALOS[r.caja] * DIA;
+      }
       actualizarRacha();
       guardar();
     },
@@ -77,10 +124,12 @@
     // 0 = nuevo, 1–5 = dominio creciente
     dominio(id) { const r = estado.chars[id]; return r && r.visto ? r.caja : 0; },
 
+    // Pendiente = le toca repasarse hoy (hasta la medianoche local). FSRS programa a veces
+    // repasos a los pocos minutos (aprendizaje); en una app de sesión diaria cuentan como "de hoy".
     pendientes() {
-      const ahora = Date.now();
+      const finDeHoy = new Date(); finDeHoy.setHours(24, 0, 0, 0);
       return Object.entries(estado.chars)
-        .filter(([id, r]) => r.visto && r.proximo <= ahora && existe(id))
+        .filter(([id, r]) => r.visto && r.proximo < +finDeHoy && existe(id))
         .sort((a, b) => a[1].caja - b[1].caja || a[1].proximo - b[1].proximo)
         .map(([id]) => id);
     },

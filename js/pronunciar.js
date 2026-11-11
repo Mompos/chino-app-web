@@ -15,24 +15,52 @@
   // ── Pinyin → tonos de cada sílaba ──
   // La "r" final de erhua (哪儿 nǎr) solo cuenta si no la sigue una vocal (si no, es la inicial de la sílaba siguiente: shēngrì)
   const SILABA = /(?:zh|ch|sh|[bpmfdtnlgkhjqxrzcsyw])?(?:iang|iong|uang|ueng|ang|eng|ing|ong|ian|iao|uai|uan|üan|ai|ei|ao|ou|an|en|in|un|ün|ia|ie|iu|ua|uo|ui|üe|ue|er|a|o|e|i|u|ü)(?:r(?![aeiouü]))?/g;
-  function tonosDe(pinyin, texto) {
-    const limpio = pinyin.toLowerCase().replace(/[^a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü' ]/g, ' ');
-    const tonos = [];
-    let erhua = 0;
+  // Divide pinyin en sílabas: [{ s: sílaba sin tono, t: tono 1–5 }]. Acepta marcas (nǐ hǎo) o números (ni3 hao3);
+  // en la forma con números, "v" o "u:" valen por "ü" y el 0 o la ausencia de número es el tono neutro.
+  function silabas(pinyin) {
+    const texto = String(pinyin).toLowerCase().replace(/u:/g, 'ü').replace(/v/g, 'ü');
+    const conNumeros = /[a-zü][0-5]/.test(texto);
+    const limpio = texto.replace(/[^a-zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü0-5' ]/g, ' ');
+    const out = [];
     for (const trozo of limpio.split(/[' ]+/).filter(Boolean)) {
-      const base = V.sinTono(trozo);
+      const base = V.sinTono(trozo.replace(/[0-5]/g, ''));
+      // Posiciones de los números de tono dentro del trozo sin números
+      const tonosNum = [];
+      if (conNumeros) { let k = 0; for (const ch of trozo) { if (/[0-5]/.test(ch)) tonosNum.push({ pos: k, t: +ch || 5 }); else k++; } }
       let m;
       SILABA.lastIndex = 0;
       while ((m = SILABA.exec(base))) {
         if (!m[0]) { SILABA.lastIndex++; continue; }
-        if (m[0].length > 1 && m[0].endsWith('r') && m[0] !== 'er') erhua++;
+        const fin = m.index + m[0].length;
+        let t;
+        // El número va tras la sílaba, o antes de la "r" de erhua (dian3r)
+        if (conNumeros) { const n = tonosNum.find(x => x.pos > m.index && x.pos <= fin); t = n ? n.t : 5; }
         // Las marcas de tono están en las vocales, que caen siempre dentro de su sílaba
-        tonos.push(I.tonoDe(trozo.slice(m.index, m.index + m[0].length)));
+        else t = I.tonoDe(trozo.slice(m.index, fin));
+        out.push({ s: m[0], t });
       }
     }
+    return out;
+  }
+
+  function tonosDe(pinyin, texto) {
+    const sil = silabas(pinyin);
+    const erhua = sil.filter(x => x.s.length > 1 && x.s.endsWith('r') && x.s !== 'er').length;
     // Una sílaba por carácter, salvo cada 儿 pegado a la sílaba anterior (一点儿 yìdiǎnr: 3 caracteres, 2 sílabas)
     const n = [...texto].filter(c => /\p{Script=Han}/u.test(c)).length;
-    return tonos.length === n - erhua ? tonos : null;
+    return sil.length === n - erhua ? sil.map(x => x.t) : null;
+  }
+
+  // Compara el pinyin que escribe el alumno con el correcto, sílaba a sílaba
+  function compararPinyin(escrito, correcto) {
+    const a = silabas(escrito), b = silabas(correcto);
+    const sinNumeros = !/[0-5]/.test(escrito) && !/[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/.test(escrito);
+    const detalle = b.map((x, k) => {
+      const y = a[k];
+      return { esperado: x, escrito: y || null, sonido: !!y && y.s === x.s, tono: !!y && y.t === x.t };
+    });
+    const ok = a.length === b.length && detalle.every(d => d.sonido && d.tono);
+    return { ok, detalle, faltanTonos: sinNumeros && b.some(x => x.t !== 5), sobran: Math.max(0, a.length - b.length) };
   }
 
   // Tono que realmente se pronuncia: dos terceros seguidos → el primero se dice como segundo
@@ -269,5 +297,5 @@
     if (b) { e.preventDefault(); abrir(b.dataset.pronunciar, b.dataset.py); }
   });
 
-  window.Pronunciar = { boton, abrir, tonosDe, realizados, analizar, frecuencia };
+  window.Pronunciar = { boton, abrir, silabas, tonosDe, compararPinyin, realizados, analizar, frecuencia };
 })();
