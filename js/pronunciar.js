@@ -232,7 +232,7 @@
 
   // ── Ventana de práctica ──
   function boton(texto, pinyin) {
-    return `<button class="btn sec" data-pronunciar="${esc(texto)}" data-py="${esc(pinyin)}">🎙️ Pronunciar</button>`;
+    return `<button class="btn sec" data-pronunciar="${esc(texto)}" data-py="${esc(pinyin)}" aria-label="Pronunciar ${esc(texto)}">${window.Iconos.svg('micro')} <span class="txt">Pronunciar</span></button>`;
   }
 
   function abrir(texto, pinyin) {
@@ -248,7 +248,7 @@
     const soporte = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
     dlg.innerHTML = `
       <form method="dialog" class="cerrar-dlg"><button aria-label="Cerrar">✕</button></form>
-      <h3>🎙️ Pronuncia y compara</h3>
+      <h3>${window.Iconos.svg('micro')} Pronuncia y compara</h3>
       <div class="hz frase-grande">${esc(texto)}</div>
       <div class="py grande">${esc(pinyin)}</div>
       <div class="tonos-esperados">${realizados(tonos).map((t, k) => `<span class="etq-tono ${V.tonoClase(t)}">${t === 5 ? 'neutro' : t + '.º'}${tonos[k] !== t ? '*' : ''}</span>`).join('')}</div>
@@ -256,8 +256,8 @@
       <p class="nota leyenda-curva"><span class="muestra-ideal"></span> contorno ideal · <span class="muestra-tuya"></span> tu voz</p>
       <div id="pron-resultado" aria-live="polite"></div>
       <div class="fila botones centrada">
-        <button class="btn sec" id="pron-oir">🔊 Escuchar</button>
-        <button class="btn" id="pron-grabar" ${soporte ? '' : 'disabled'}>● Grabar</button>
+        <button class="btn sec" id="pron-oir">${window.Iconos.svg('altavoz')} Escuchar</button>
+        <button class="btn" id="pron-grabar" ${soporte ? '' : 'disabled'}>${window.Iconos.svg('micro')} Grabar</button>
       </div>
       <p class="nota">${soporte ? 'Pulsa Grabar y di la palabra. La grabación se detiene sola al callarte. El audio no sale de tu dispositivo.' : 'Este navegador no permite usar el micrófono.'}</p>`;
     dlg.showModal();
@@ -267,18 +267,18 @@
       if (grab) { grab.parar(); return; }
       if ('speechSynthesis' in window) speechSynthesis.cancel();
       $r.innerHTML = '';
-      $b.textContent = '■ Parar';
+      $b.innerHTML = window.Iconos.svg('x') + ' Parar';
       $b.classList.add('grabando');
       try {
         await grabar(frames => {
-          $b.textContent = '● Grabar otra vez';
+          $b.innerHTML = window.Iconos.svg('micro') + ' Grabar otra vez';
           $b.classList.remove('grabando');
           const an = analizar(frames, tonos);
           $g.innerHTML = grafica(an, frames, tonos);
           $r.innerHTML = an ? resultadoHTML(an) : '<p class="aviso-mal">No te he oído bien. Acércate al micrófono y habla un poco más alto.</p>';
         }, frames => { $g.innerHTML = grafica(null, frames, tonos); });
       } catch (e) {
-        $b.textContent = '● Grabar';
+        $b.innerHTML = window.Iconos.svg('micro') + ' Grabar';
         $b.classList.remove('grabando');
         $r.innerHTML = `<p class="aviso-mal">No se pudo usar el micrófono${e && e.name === 'NotAllowedError' ? ': permite el acceso al micrófono para esta app' : ''}.</p>`;
       }
@@ -289,7 +289,7 @@
     const bien = an.resultado.filter(r => r.ok).length;
     return `
       <p class="nota-pron"><b>${bien} de ${an.resultado.length}</b> sílabas con el tono correcto ${bien === an.resultado.length ? '🎉' : ''}</p>
-      <ul class="lista-pron">${an.resultado.map((r, k) => `<li class="${r.ok ? 'ok' : 'mal'}">${r.ok ? '✅' : '⚠️'} Sílaba ${k + 1} <span class="${V.tonoClase(r.tono)}">(${r.tono === 5 ? 'neutro' : r.tono + '.º'})</span>: ${esc(r.consejo)}</li>`).join('')}</ul>`;
+      <ul class="lista-pron">${an.resultado.map((r, k) => `<li class="${r.ok ? 'ok' : 'mal'}">${window.Iconos.svg(r.ok ? 'check' : 'x', r.ok ? 'c-ok' : 'c-aviso')} Sílaba ${k + 1} <span class="${V.tonoClase(r.tono)}">(${r.tono === 5 ? 'neutro' : r.tono + '.º'})</span>: ${esc(r.consejo)}</li>`).join('')}</ul>`;
   }
 
   document.addEventListener('click', e => {

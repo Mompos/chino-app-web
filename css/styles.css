@@ -12,8 +12,8 @@
   --ok: #1f8a70;
   --mal: #c8372d;
   --sombra: 0 1px 2px rgba(60, 40, 20, .06), 0 4px 16px rgba(60, 40, 20, .06);
-  /* Colores de tonos (convención Pleco) */
-  --t1: #d6302f; --t2: #2e8b3e; --t3: #2f5fd0; --t4: #8a3fb5; --t5: #7c7c7c;
+  /* Colores de tonos (convención Pleco), con contraste AA sobre el fondo claro */
+  --t1: #d22d2c; --t2: #23793a; --t3: #2f5fd0; --t4: #8a3fb5; --t5: #696969;
   --radio: 14px;
   --hz: 'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', sans-serif;
   --hz-serif: 'Noto Serif SC', 'SimSun', serif;
@@ -27,6 +27,8 @@
     --sombra: 0 1px 2px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
     color-scheme: dark;
   }
+  :root .pastilla.racha { color: #fdba74; }
+  :root .sh-ico:not(.ok), :root .fila-accion.destacada .fa-ico { color: #fcd34d; }
 }
 
 * { box-sizing: border-box; }
@@ -117,11 +119,12 @@ main { max-width: 1040px; margin: 0 auto; padding: 1.5rem clamp(1rem, 4vw, 2rem)
 .nivel-info h3, .leccion h3 { margin: 0; font-size: 1.05rem; }
 .nivel-info h3 .hz { color: var(--tinta-2); font-weight: 400; font-size: .9rem; }
 .leccion p { margin: 0; color: var(--tinta-2); font-size: .9rem; }
-.muestra { color: var(--tinta-2); font-size: 1.05rem; letter-spacing: .05em; margin: .2rem 0 .4rem; }
+.muestra { color: var(--tinta-2); font-size: 1.05rem; letter-spacing: .05em; margin: .2rem 0 .4rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nivel-info { min-width: 0; }
 .barra-avance, .progreso-fino { height: 6px; background: var(--papel-2); border-radius: 99px; overflow: hidden; }
 .barra-avance span, .progreso-fino span { display: block; height: 100%; background: linear-gradient(90deg, var(--jade), var(--oro)); border-radius: 99px; transition: width .3s; }
 .progreso-fino { margin-bottom: 1rem; }
-.estrellas span { color: var(--borde); font-size: 1.1rem; }
+.estrellas span { color: color-mix(in srgb, var(--tinta-2) 45%, transparent); display: inline-flex; }
 .estrellas span.on { color: var(--oro); }
 .estrellas-grandes .estrellas span { font-size: 3rem; }
 .lecciones { display: grid; gap: .8rem; }
@@ -502,7 +505,136 @@ textarea.campo { resize: vertical; font-family: ui-monospace, monospace; font-si
 .etq-actual { display: inline-block; font-size: .8rem; font-weight: 800; color: var(--jade); }
 .leccion.actual { border-color: var(--jade); box-shadow: 0 0 0 2px color-mix(in srgb, var(--jade) 30%, transparent); }
 
+/* ── Rediseño: iconos, tarjetas y jerarquía ───────────────────────────── */
+.i { width: 1.2em; height: 1.2em; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.22em; }
+.btn .i { margin: 0 -.1em; }
+.c-ok { color: var(--ok); } .c-mal { color: var(--mal); } .c-aviso { color: var(--oro); }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--rojo) 55%, transparent); outline-offset: 2px; border-radius: 6px; }
+
+/* Botón de audio: icono claro y área táctil de 44 px */
+.btn-audio {
+  display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; border-radius: 50%;
+  color: var(--rojo); background: color-mix(in srgb, var(--rojo) 9%, transparent); vertical-align: middle; flex: none;
+}
+.btn-audio:hover { background: color-mix(in srgb, var(--rojo) 16%, transparent); }
+.btn-audio .i { width: 1.3rem; height: 1.3rem; }
+.btn-escuchar { color: var(--rojo); }
+.btn-escuchar .i { width: 2.6rem; height: 2.6rem; }
+.btn-voz { color: var(--tinta-2); }
+.btn-voz .i { width: 1.2rem; height: 1.2rem; }
+.marcador { display: inline-flex; gap: .8rem; align-items: center; }
+.m-ok { color: var(--ok); } .m-mal { color: var(--mal); }
+.marcador .i { width: 1em; height: 1em; }
+
+/* Cabecera de pantalla (Hoy, Niveles) */
+.cab-hoy { margin-bottom: 1rem; }
+.cab-hoy h1 { font-size: clamp(1.8rem, 6vw, 2.3rem); margin: 0 0 .5rem; }
+.cab-hoy h1 .hz { color: var(--rojo); font-family: var(--hz-serif); font-weight: 600; }
+.cab-hoy .fecha { margin: 0; color: var(--tinta-2); font-weight: 700; font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; }
+.cab-hoy .sub { color: var(--tinta-2); margin: 0 0 .8rem; }
+.pastillas { display: flex; flex-wrap: wrap; gap: .4rem; }
+.pastilla {
+  display: inline-flex; align-items: center; gap: .3rem; padding: .3rem .7rem; border-radius: 999px; font-size: .85rem;
+  background: var(--tarjeta); border: 1px solid var(--borde); color: var(--tinta-2);
+}
+.pastilla b { color: var(--tinta); }
+.pastilla.racha { color: #c2410c; border-color: color-mix(in srgb, #ea580c 35%, var(--borde)); background: color-mix(in srgb, #fb923c 10%, var(--tarjeta)); }
+.pastilla.racha b { color: inherit; }
+.progreso-global small { color: var(--tinta-2); }
+.progreso-global .barra-avance { height: 8px; margin-bottom: .3rem; }
+
+/* Tarjeta de la sesión de hoy */
+.sesion-hoy {
+  background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 20px; padding: 1.3rem; box-shadow: var(--sombra); margin-bottom: 1rem;
+  background-image: linear-gradient(160deg, color-mix(in srgb, var(--oro) 12%, transparent), transparent 45%);
+}
+.sesion-hoy.hecha { background-image: linear-gradient(160deg, color-mix(in srgb, var(--jade) 13%, transparent), transparent 45%); }
+.sh-cab { display: flex; gap: .9rem; align-items: center; margin-bottom: 1rem; }
+.sh-cab h2 { margin: 0; font-size: 1.35rem; }
+.sh-cab p { margin: .1rem 0 0; color: var(--tinta-2); font-size: .92rem; }
+.sh-ico { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 14px; flex: none; color: #b45309; background: color-mix(in srgb, var(--oro) 22%, var(--tarjeta)); }
+.sh-ico.ok { color: var(--jade); background: color-mix(in srgb, var(--jade) 16%, var(--tarjeta)); }
+.sh-ico .i { width: 1.6rem; height: 1.6rem; }
+.plan-hoy { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: .5rem; list-style: none; padding: 0; margin: 0 0 1rem; }
+.plan-hoy div { background: var(--papel); border-radius: 12px; padding: .6rem .4rem; text-align: center; }
+.plan-hoy b { display: block; font-size: 1.6rem; line-height: 1.1; color: var(--rojo); font-variant-numeric: tabular-nums; }
+.plan-hoy span { font-size: .8rem; color: var(--tinta-2); }
+.sh-sub { margin: 0 0 .3rem; font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--tinta-2); }
+.sesion-hoy .chips { margin-bottom: 1rem; }
+.chip-frase { width: auto; height: auto; padding: .25rem .6rem; font-size: .95rem; border-style: dashed; }
+.btn-bloque { display: flex; justify-content: center; width: 100%; padding: .9rem 1rem; font-size: 1.05rem; border-radius: 14px; }
+.reloj-caja { text-align: center; background: var(--papel); border-radius: 14px; padding: .8rem; }
+.reloj-caja .reloj { margin: .2rem 0 0; }
+
+/* Tarjetas con filas de acción (Tu curso, Si te quedan ganas) */
+.tarjeta { background: var(--tarjeta); border: 1px solid var(--borde); border-radius: 18px; padding: .4rem; box-shadow: var(--sombra); margin-bottom: 1rem; }
+.tarjeta-tit { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; margin: .5rem .7rem .3rem; font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; color: var(--tinta-2); }
+.tit-enlace { margin-left: auto; text-transform: none; letter-spacing: 0; font-size: .85rem; font-weight: 700; text-decoration: none; }
+.fila-accion {
+  display: flex; align-items: center; gap: .8rem; padding: .7rem .7rem; border-radius: 12px; text-decoration: none; color: var(--tinta);
+  min-height: 3.2rem;
+}
+.fila-accion:hover { background: var(--papel); }
+.fila-accion > .i { color: var(--tinta-2); }
+.fa-ico { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 10px; flex: none; color: var(--rojo); background: color-mix(in srgb, var(--rojo) 9%, transparent); }
+.fa-txt { flex: 1; display: grid; }
+.fa-txt small { color: var(--tinta-2); }
+.fila-accion.destacada { background: color-mix(in srgb, var(--oro) 14%, var(--tarjeta)); border: 1px solid color-mix(in srgb, var(--oro) 45%, transparent); margin-bottom: 1rem; }
+.fila-accion.destacada .fa-ico { color: #b45309; background: color-mix(in srgb, var(--oro) 25%, transparent); }
+
+/* Modos de un nivel o lección */
+.modo .ico { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 12px; color: var(--rojo); background: color-mix(in srgb, var(--rojo) 9%, transparent); }
+.modo .ico .i { width: 1.4rem; height: 1.4rem; }
+.modo.destacado .ico { color: #fff; background: rgba(255, 255, 255, .2); }
+.nivel-estado > .i { width: 1.3rem; height: 1.3rem; color: var(--tinta-2); }
+.etq-actual .i, .btn .i { pointer-events: none; }
+
+/* Vocabulario y frases de la lección: cuadrícula (audio · carácter con pinyin debajo · significado · micro) */
+.lista-vocab li {
+  display: grid; grid-template-columns: auto minmax(3.5rem, auto) 1fr auto; grid-template-areas: "a h s m" "a p s m";
+  column-gap: .7rem; row-gap: 0; align-items: center;
+}
+.lista-vocab li > .btn-audio { grid-area: a; }
+.lista-vocab li > .hz { grid-area: h; align-self: end; line-height: 1.2; }
+.lista-vocab li > .py { grid-area: p; align-self: start; font-size: .85rem; }
+.lista-vocab li > .sig { grid-area: s; line-height: 1.3; }
+.lista-vocab li > .btn { grid-area: m; }
+.lista-frases li { display: grid; grid-template-columns: auto 1fr auto; column-gap: .7rem; align-items: center; }
+.lista-frases .sig { color: var(--tinta-2); font-size: .92rem; }
+.lista-vocab .btn, .lista-frases .btn { width: 2.75rem; height: 2.75rem; padding: 0; justify-content: center; border-radius: 50%; }
+
+/* Ajustes: filas con el texto a la izquierda e interruptores al estilo iOS */
+.ajustes.abierto h2 { display: flex; align-items: center; gap: .5rem; margin-top: .2rem; }
+.ajustes .fila { gap: .8rem; }
+.interruptor { flex-wrap: nowrap !important; align-items: flex-start; justify-content: space-between; cursor: pointer; }
+.interruptor small { display: block; margin-top: .15rem; }
+.interruptor input {
+  order: 2; appearance: none; -webkit-appearance: none; flex: none; width: 3rem; height: 1.8rem; margin: 0; border-radius: 999px;
+  background: var(--borde); position: relative; cursor: pointer; transition: background .2s;
+}
+.interruptor input::after {
+  content: ''; position: absolute; top: .2rem; left: .2rem; width: 1.4rem; height: 1.4rem; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: transform .2s;
+}
+.interruptor input:checked { background: var(--jade); }
+.interruptor input:checked::after { transform: translateX(1.2rem); }
+.ajustes .fila:not(.interruptor):not(.botones) { display: grid; grid-template-columns: auto 1fr auto; align-items: center; }
+.ajustes .fila select { grid-column: 2 / 4; }
+
+/* Opciones con número de tecla: que el número no pise el texto */
+@media (hover: hover) { .opcion { padding-left: 2rem; padding-right: 2rem; } }
+
+/* Estrellas de nivel: rellenas las ganadas, contorno las pendientes */
+.estrellas { display: inline-flex; gap: .1rem; }
+.estrellas .i { width: 1rem; height: 1rem; stroke-width: 1.8; }
+.estrellas .on .i { fill: currentColor; }
+.estrellas-grandes .estrellas .i { width: 3rem; height: 3rem; }
+
+/* Pestañas: icono en color de la marca cuando está activa */
+.pestanas .ico .i { width: 1.45rem; height: 1.45rem; }
+
 /* Pantallas táctiles (iPhone, Android, tabletas) */
+@media (hover: none) { kbd { display: none; } }
 a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .escribir .hw, .escribir .trazos-caja { touch-action: none; -webkit-user-select: none; user-select: none; }
 .pestanas .ico { display: none; }
@@ -544,8 +676,16 @@ a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent
   }
   .pestanas a:hover { background: none !important; }
   .pestanas a.activo { background: none !important; color: var(--rojo) !important; }
-  .pestanas .ico { display: block; font-size: 1.35rem; line-height: 1.2; filter: grayscale(1); opacity: .6; }
-  .pestanas a.activo .ico { filter: none; opacity: 1; }
+  .pestanas .ico { display: block; line-height: 1; color: var(--tinta-2); }
+  .pestanas a.activo .ico { color: var(--rojo); }
+
+  /* Modos como mosaicos compactos: el contenido de la lección queda a la vista */
+  .modos { grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .modo { padding: .8rem; gap: .35rem; align-content: start; }
+  .modo small { display: none; }
+  .modo.destacado { grid-column: span 2; grid-template-columns: auto 1fr; align-items: center; column-gap: .7rem; }
+  .modo.destacado small { display: block; grid-column: 2; }
+  .modo.destacado .ico { grid-row: span 2; }
   .pestanas .badge { position: absolute; top: 0; left: calc(50% + 6px); margin: 0; }
 
   main {

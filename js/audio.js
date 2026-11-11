@@ -38,9 +38,10 @@
     const b = document.getElementById('btn-voz');
     if (!b) return;
     const on = ajustes().vozActiva && ajustes().volumen > 0;
-    b.textContent = on ? '🔊' : '🔇';
+    b.innerHTML = window.Iconos.svg(on ? 'altavoz' : 'silencio');
     b.setAttribute('aria-pressed', String(!on));
     b.title = on ? 'Silenciar la voz' : 'Activar la voz';
+    b.setAttribute('aria-label', b.title);
   }
 
   window.Voz = {
@@ -82,7 +83,7 @@
       if (activar && a.volumen === 0) window.Progreso.cambiarAjuste('volumen', 1);
       if (!activar && 'speechSynthesis' in window) speechSynthesis.cancel();
       pintarBoton();
-      window.Vistas && window.Vistas.toast(activar ? '🔊 Voz activada' : '🔇 Voz desactivada');
+      window.Vistas && window.Vistas.toast(activar ? 'Voz activada' : 'Voz desactivada');
     },
     pintarBoton,
   };

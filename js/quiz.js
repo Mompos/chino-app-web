@@ -107,7 +107,7 @@
       const sil = ch.pinyin.split(/[\/ ]/)[0];
       return {
         tipo: 'tono', id: c, enunciado: '¿Qué tono tiene?',
-        estimulo: `<span class="hz enorme">${esc(c)}</span><div class="py grande">${esc(V.sinTono(sil))} <button class="btn-audio" data-decir="${esc(c)}">🔊</button></div>`,
+        estimulo: `<span class="hz enorme">${esc(c)}</span><div class="py grande">${esc(V.sinTono(sil))} <button class="btn-audio" data-decir="${esc(c)}" aria-label="Escuchar">${window.Iconos.svg('altavoz')}</button></div>`,
         opciones: [1, 2, 3, 4, 5].map(t => ({ valor: t, html: `<span class="${V.tonoClase(t)} op-tono">${nombreTono(t)}<small>${conTono('a', t)}</small></span>` })),
         correcta: ch.tono, audio: c, autoAudio: true, explicacion: `${ch.pinyin} (${ch.significado}).`,
       };
@@ -142,7 +142,7 @@
       const ops = barajar([{ id, es: it.significado }, ...otrosDe(PALABRAS, it, 3)]);
       return {
         tipo: 'palabraSignificado', id, enunciado: '¿Qué significa esta palabra?',
-        estimulo: `<span class="hz palabra-grande">${esc(it.texto)}</span> <button class="btn-audio" data-decir="${esc(it.texto)}">🔊</button>`,
+        estimulo: `<span class="hz palabra-grande">${esc(it.texto)}</span> <button class="btn-audio" data-decir="${esc(it.texto)}" aria-label="Escuchar">${window.Iconos.svg('altavoz')}</button>`,
         opciones: ops.map(x => ({ valor: x.id, html: esc(x.es) })), correcta: id,
         audio: it.texto, explicacion: `${it.texto} (${it.pinyin}): ${it.significado}.`,
       };
@@ -186,7 +186,7 @@
       const ops = barajar([{ id, es: it.significado }, ...otrosDe(FRASES, it, 3)]);
       return {
         tipo: 'fraseTraducir', id, enunciado: '¿Qué significa esta frase?',
-        estimulo: `<div class="hz frase-grande">${esc(it.texto)}</div><button class="btn-audio" data-decir="${esc(it.texto)}">🔊</button>`,
+        estimulo: `<div class="hz frase-grande">${esc(it.texto)}</div><button class="btn-audio" data-decir="${esc(it.texto)}" aria-label="Escuchar">${window.Iconos.svg('altavoz')}</button>`,
         opciones: ops.map(x => ({ valor: x.id, html: esc(x.es) })), correcta: id,
         audio: it.texto, explicacion: `${it.pinyin} — ${it.significado}`,
       };
@@ -259,7 +259,7 @@
 
   // data-repetir: "escuchar otra vez" repite con la misma voz (las preguntas de escucha varían de voz)
   function botonEscuchar(texto) {
-    return `<button class="btn-escuchar" data-decir="${esc(texto)}" data-repetir>🔊<small>Pulsa para escuchar otra vez</small></button>`;
+    return `<button class="btn-escuchar" data-decir="${esc(texto)}" data-repetir>${window.Iconos.svg('altavoz')}<small>Pulsa para escuchar otra vez</small></button>`;
   }
 
   // Tipos de pregunta que tienen sentido para cada elemento.
@@ -323,7 +323,7 @@
     const total = isFinite(s.n) ? s.n : null;
     $app().innerHTML = `
       <nav class="migas"><a href="${s.volver}">← ${esc(s.titulo)}</a>
-        <span class="marcador">✅ ${s.aciertos} · ❌ ${s.fallos.length}${total ? '' : ' · <a href="#" id="terminar">Terminar</a>'}</span></nav>
+        <span class="marcador"><span class="m-ok">${window.Iconos.svg('check')} ${s.aciertos}</span><span class="m-mal">${window.Iconos.svg('x')} ${s.fallos.length}</span>${total ? '' : ' · <a href="#" id="terminar">Terminar</a>'}</span></nav>
       ${total ? `<div class="progreso-fino"><span style="width:${s.i / total * 100}%"></span></div>` : ''}
       ${s.sinSRS ? '<p class="nota centrada-txt">Práctica extra: no cambia tu repaso programado.</p>' : ''}
       <section class="pregunta">
@@ -377,7 +377,7 @@
   }
   function detallePinyinHTML(r) {
     if (!r || r.ok) return '';
-    const marcar = d => d.sonido && d.tono ? '✅' : d.sonido ? '🎵' : '✗';
+    const marcar = d => window.Iconos.svg(d.sonido && d.tono ? 'check' : d.sonido ? 'tonos' : 'x', d.sonido && d.tono ? 'c-ok' : d.sonido ? 'c-aviso' : 'c-mal');
     return `<ul class="detalle-py">${r.detalle.map(d => `<li>${marcar(d)} <b>${esc(d.esperado.s)}${d.esperado.t}</b>${d.escrito ? ` · escribiste ${esc(d.escrito.s)}${d.escrito.t}` : ' · falta'}${d.sonido && !d.tono ? ' (el sonido está bien, el tono no)' : ''}</li>`).join('')}</ul>
       ${r.faltanTonos ? '<p class="aviso-mal">Recuerda escribir el número de tono tras cada sílaba.</p>' : ''}`;
   }

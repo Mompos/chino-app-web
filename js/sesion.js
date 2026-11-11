@@ -24,7 +24,9 @@
     const enCurso = l => !L || (l && l <= L);
     const palabras = I.palabrasRepaso.filter(id => !P.visto(id) && enCurso(I.get(id).leccion) && listo(I.get(id).texto))
       .sort((a, b) => I.get(a).leccion - I.get(b).leccion).slice(0, 2);
-    const frases = D.vocabulario.frases.filter(f => !P.visto(f.id) && enCurso(f.l) && listo(f.zh)).slice(0, 1).map(f => f.id);
+    // Frases de verdad (3 palabras o más): «你好！» ya se aprende como palabra
+    const esFrase = f => f.tokens.filter(t => !/^[，。？！]+$/.test(t)).length >= 3;
+    const frases = D.vocabulario.frases.filter(f => !P.visto(f.id) && esFrase(f) && enCurso(f.l) && listo(f.zh)).slice(0, 1).map(f => f.id);
     const cupoChars = cupo - palabras.length - frases.length;
     const chars = [];
     const tomar = c => { if (chars.length < cupoChars && !P.visto(c) && !chars.includes(c)) chars.push(c); };
@@ -37,17 +39,25 @@
   }
 
   // ── Modo clase ──
+  const ico = n => window.Iconos.svg(n);
+  // Fila de acción de una lista (icono, título, detalle y flecha)
+  const fila = (href, icono, titulo, detalle) => `
+    <a class="fila-accion" href="${href}"><span class="fa-ico">${ico(icono)}</span>
+      <span class="fa-txt"><b>${titulo}</b>${detalle ? `<small>${detalle}</small>` : ''}</span>${ico('flecha')}</a>`;
+
   function htmlClase() {
     const L = P.ajustes().leccionActual || 0;
-    if (!L) return `<p class="nota centrada-txt">📍 ¿Vas a clase con <i>Chino paso a paso</i>? <a href="#/libro">Indica en qué lección vas</a> y la app se adaptará a tu curso.</p>`;
+    if (!L) return `
+      <section class="tarjeta">
+        <h3 class="tarjeta-tit">${ico('libro')} Tu curso</h3>
+        ${fila('#/libro', 'pin', '¿Vas a clase con <i>Chino paso a paso</i>?', 'Indica en qué lección vas y la app se adaptará a tu curso')}
+      </section>`;
     const lec = D.libro[L - 1], sig = D.libro[L];
     return `
-      <section class="caja-clase">
-        <a class="chip-leccion" href="#/libro/${L}">📍 Lección ${L} · <span class="hz">${esc(lec.titulo)}</span> ${esc(lec.tituloEs)}</a>
-        <div class="fila botones centrada">
-          ${sig ? `<a class="btn sec" href="#/clase/antes">📖 Antes de clase: avance de la lección ${L + 1}</a>` : ''}
-          <a class="btn sec" href="#/clase/despues">🔁 Después de clase: repaso de la lección ${L}</a>
-        </div>
+      <section class="tarjeta">
+        <h3 class="tarjeta-tit">${ico('libro')} Tu curso <a class="tit-enlace" href="#/libro/${L}">Lección ${L} · <span class="hz">${esc(lec.titulo)}</span></a></h3>
+        ${sig ? fila('#/clase/antes', 'ojo', 'Antes de clase', `Avance del vocabulario de la lección ${L + 1}`) : ''}
+        ${fila('#/clase/despues', 'repetir', 'Después de clase', `Repaso de la lección ${L}`)}
       </section>`;
   }
 
@@ -127,30 +137,41 @@
 
   function htmlCompletada(s) {
     return `
-      <section class="caja-hoy hecha">
-        <div class="hoy-ico">✅</div>
-        <h2>Sesión de hoy completada</h2>
-        ${s.total ? `<p>${s.aciertos} de ${s.total} aciertos${s.nuevos ? ` · ${s.nuevos} elementos nuevos` : ''}</p>` : ''}
-        <p class="nota">La próxima sesión se abre a medianoche:</p>
-        <div class="reloj" id="reloj" role="timer" aria-label="Tiempo hasta la próxima sesión">--:--:--</div>
-        <div class="fila botones centrada">
-          <a class="btn sec" href="#/hoy/extra">🎯 Práctica extra</a>
-          <a class="btn sec" href="#/tonos">🎵 Pares de tonos</a>
-          <a class="btn sec" href="#/tutor">💬 Tutor</a>
-        </div>
-        <p class="nota">La práctica extra no cambia tu repaso programado: los repasos vuelven cuando les toca.</p>
+      <section class="sesion-hoy hecha">
+        <div class="sh-cab"><span class="sh-ico ok">${ico('check')}</span>
+          <div><h2>Sesión completada</h2>${s.total ? `<p>${s.aciertos} de ${s.total} aciertos${s.nuevos ? ` · ${s.nuevos} nuevos` : ''}</p>` : ''}</div></div>
+        <div class="reloj-caja"><span class="nota">${ico('reloj')} La próxima sesión se abre en</span>
+          <div class="reloj" id="reloj" role="timer" aria-label="Tiempo hasta la próxima sesión">--:--:--</div></div>
+      </section>
+      <section class="tarjeta">
+        <h3 class="tarjeta-tit">${ico('diana')} Si te quedan ganas</h3>
+        ${fila('#/hoy/extra', 'diana', 'Práctica extra', 'Tus elementos más débiles; no cambia el repaso programado')}
+        ${fila('#/tonos', 'tonos', 'Pares de tonos', 'Escucha, reconoce y pronuncia')}
+        ${fila('#/tutor', 'chat', 'Conversar con el tutor', 'Practica una situación de tu lección')}
       </section>`;
   }
+
+  const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+  const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 
   function pantalla() {
     detenerReloj();
     const s = P.sesionHoy();
     const racha = P.racha();
     const st = P.estadisticas();
-    const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
+    const hoy = new Date();
+    const plural = (n, uno, varios) => `<b>${n}</b> ${n === 1 ? uno : varios}`;
     const cabecera = `
-      <section class="portada"><h1>Hoy <span class="hz">今天</span></h1>
-        <p>🔥 ${plural(racha.dias || 0, 'día', 'días')} de racha · ${plural(st.vistos, 'carácter', 'caracteres')} · ${plural(st.palabras, 'palabra', 'palabras')} · ${plural(st.frases, 'frase', 'frases')}</p></section>`;
+      <header class="cab-hoy">
+        <p class="fecha">${DIAS[hoy.getDay()]}, ${hoy.getDate()} de ${MESES[hoy.getMonth()]}</p>
+        <h1>Hoy <span class="hz">今天</span></h1>
+        <div class="pastillas">
+          <span class="pastilla racha">${ico('llama')} ${plural(racha.dias || 0, 'día', 'días')}</span>
+          <span class="pastilla">${plural(st.vistos, 'carácter', 'caracteres')}</span>
+          <span class="pastilla">${plural(st.palabras, 'palabra', 'palabras')}</span>
+          <span class="pastilla">${plural(st.frases, 'frase', 'frases')}</span>
+        </div>
+      </header>`;
     if (s.completada) {
       $app().innerHTML = cabecera + htmlCompletada(s) + htmlClase();
       arrancarReloj();
@@ -158,19 +179,19 @@
     }
     const plan = preparar();
     const vacia = !plan.repasos.length && !plan.nuevos.length;
+    const chip = id => { const it = I.get(id); return `<span class="chip ${it.tipo === 'frase' ? 'chip-frase' : 'chip-texto'}" title="${esc(it.pinyin + ' · ' + it.significado)}">${esc(it.texto)}</span>`; };
     $app().innerHTML = cabecera + `
-      <section class="caja-hoy">
-        <div class="hoy-ico">☀️</div>
-        <h2>Sesión de hoy</h2>
-        ${vacia ? `<p>No hay repasos pendientes ni elementos nuevos disponibles: hoy toca una sesión corta de pares de tonos. Para tener más contenido nuevo, consigue estrellas en los niveles.</p>` : `
-        <ul class="plan-hoy">
-          ${plan.repasos.length ? `<li><b>${plan.repasos.length}</b> repasos</li>` : ''}
-          ${plan.nuevos.length ? `<li><b>${plan.nuevos.length}</b> nuevos</li>` : ''}
-          <li><b>${plan.pares.length}</b> pares de tonos</li>
-        </ul>
-        ${plan.nuevos.length ? `<div class="chips centrada">${plan.nuevos.map(id => `<span class="chip chip-texto">${esc(I.get(id).texto)}</span>`).join('')}</div>` : ''}`}
-        <p class="nota">Unos ${minutos(plan)} minutos. Solo se puede hacer una vez al día.</p>
-        <a class="btn grande-btn" href="#/hoy/empezar">Empezar ▶</a>
+      <section class="sesion-hoy">
+        <div class="sh-cab"><span class="sh-ico">${ico('sol')}</span>
+          <div><h2>Sesión de hoy</h2><p>Unos ${minutos(plan)} minutos · una vez al día</p></div></div>
+        ${vacia ? `<p>No hay repasos pendientes ni elementos nuevos: hoy toca una sesión corta de pares de tonos. Para tener contenido nuevo, consigue estrellas en los niveles.</p>` : `
+        <div class="plan-hoy">
+          ${plan.repasos.length ? `<div><b>${plan.repasos.length}</b><span>repasos</span></div>` : ''}
+          ${plan.nuevos.length ? `<div><b>${plan.nuevos.length}</b><span>nuevos</span></div>` : ''}
+          <div><b>${plan.pares.length}</b><span>pares de tonos</span></div>
+        </div>
+        ${plan.nuevos.length ? `<p class="sh-sub">Hoy aprenderás</p><div class="chips">${plan.nuevos.map(chip).join('')}</div>` : ''}`}
+        <a class="btn btn-bloque" href="#/hoy/empezar">Empezar ${ico('flecha')}</a>
       </section>` + htmlClase();
   }
 

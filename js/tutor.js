@@ -89,9 +89,9 @@ La sugerencia debe ser una respuesta breve y fácil que el alumno pueda decir ah
             <span><b>${esc(e.titulo)}</b> <span class="hz">${esc(e.zh)}</span><small>${esc(e.situacion)}</small></span>
           </button>`).join('')}
       </div>
-      <details class="ajustes"><summary>🔑 Clave de API</summary>${htmlClave(true)}</details>` : `
+      <details class="ajustes"><summary>${window.Iconos.svg('llave')} Clave de API</summary>${htmlClave(true)}</details>` : `
       <section class="caja-repaso">
-        <h2>🔑 Configura el tutor</h2>
+        <h2>${window.Iconos.svg('llave')} Configura el tutor</h2>
         ${htmlClave(false)}
       </section>`}`;
     montarClave();
@@ -111,7 +111,7 @@ La sugerencia debe ser una respuesta breve y fácil que el alumno pueda decir ah
         <button class="btn" id="guardar-clave">Guardar</button>
         ${hayClave ? '<button class="btn peligro" id="borrar-clave">Borrar clave</button>' : ''}
       </div>
-      ${hayClave ? '<p class="nota">✅ Hay una clave guardada en este dispositivo.</p>' : ''}`;
+      ${hayClave ? `<p class="nota">${window.Iconos.svg('check')} Hay una clave guardada en este dispositivo.</p>` : ''}`;
   }
   function montarClave() {
     const g = document.getElementById('guardar-clave');
@@ -137,13 +137,13 @@ La sugerencia debe ser una respuesta breve y fácil que el alumno pueda decir ah
     const r = o.respuesta, c = o.correccion, s = o.sugerencia;
     return `
       ${c && (c.hay_error || c.explicacion) ? `
-        <div class="correccion">✏️ ${c.corregido_hanzi ? `<span class="hz">${esc(c.corregido_hanzi)}</span> <span class="py">${esc(c.corregido_pinyin)}</span><br>` : ''}${esc(c.explicacion)}</div>` : ''}
+        <div class="correccion">${window.Iconos.svg('pincel')} ${c.corregido_hanzi ? `<span class="hz">${esc(c.corregido_hanzi)}</span> <span class="py">${esc(c.corregido_pinyin)}</span><br>` : ''}${esc(c.explicacion)}</div>` : ''}
       <div class="burbuja tutor">
         <div class="hz frase-chat">${esc(r.hanzi)} ${V.hablar(r.hanzi)}</div>
         <div class="py">${esc(r.pinyin)}</div>
         <div class="trad">${esc(r.espanol)}</div>
       </div>
-      ${s && s.hanzi ? `<button class="sugerencia" data-sug="${esc(s.hanzi)}">💡 Podrías decir: <span class="hz">${esc(s.hanzi)}</span> <span class="py">${esc(s.pinyin)}</span> <small>${esc(s.espanol)}</small></button>` : ''}`;
+      ${s && s.hanzi ? `<button class="sugerencia" data-sug="${esc(s.hanzi)}">${window.Iconos.svg('bombilla')} Podrías decir: <span class="hz">${esc(s.hanzi)}</span> <span class="py">${esc(s.pinyin)}</span> <small>${esc(s.espanol)}</small></button>` : ''}`;
   }
 
   function pintarChat() {
@@ -156,7 +156,7 @@ La sugerencia debe ser una respuesta breve y fácil que el alumno pueda decir ah
         ${chat.pensando ? '<div class="burbuja tutor pensando">…</div>' : ''}
       </section>
       <form class="entrada-chat" id="form-chat">
-        ${dictado ? '<button type="button" class="btn sec" id="dictar" title="Dictar en chino">🎙️</button>' : ''}
+        ${dictado ? `<button type="button" class="btn sec" id="dictar" title="Dictar en chino" aria-label="Dictar en chino">${window.Iconos.svg('micro')}</button>` : ''}
         <input class="campo" id="msg" placeholder="Escribe en chino, pinyin o español…" autocomplete="off" ${chat.pensando ? 'disabled' : ''}>
         <button class="btn" ${chat.pensando ? 'disabled' : ''}>Enviar</button>
       </form>`;

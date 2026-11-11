@@ -19,6 +19,8 @@
     '⿹': 'rodeado por arriba a la derecha', '⿺': 'rodeado por abajo a la izquierda', '⿻': 'componentes superpuestos',
   };
 
+  const ico = n => window.Iconos.svg(n);
+
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   }
@@ -26,11 +28,11 @@
   function sinTono(s) { return s.normalize('NFD').replace(/[̀-̄̌]/g, '').normalize('NFC'); }
   function tonoClase(t) { return 't' + (t || 5); }
   function estrellas(n, total = 3) {
-    return '<span class="estrellas" aria-label="' + n + ' de ' + total + ' estrellas">' +
-      Array.from({ length: total }, (_, i) => `<span class="${i < n ? 'on' : ''}">★</span>`).join('') + '</span>';
+    return '<span class="estrellas" role="img" aria-label="' + n + ' de ' + total + ' estrellas">' +
+      Array.from({ length: total }, (_, i) => `<span class="${i < n ? 'on' : ''}">${ico('estrella')}</span>`).join('') + '</span>';
   }
   function hablar(texto) {
-    return `<button class="btn-audio" data-decir="${esc(texto)}" title="Escuchar" aria-label="Escuchar ${esc(texto)}">🔊</button>`;
+    return `<button class="btn-audio" data-decir="${esc(texto)}" title="Escuchar" aria-label="Escuchar ${esc(texto)}">${ico('altavoz')}</button>`;
   }
   function chip(c) {
     const ch = D.caracteres[c];
@@ -60,19 +62,17 @@
     const racha = P.racha();
     const hecha = P.sesionHoy().completada;
     const total = Object.keys(D.caracteres).length;
+    const vistosTotal = Math.round(st.vistos / total * 100);
     $app().innerHTML = `
-      <section class="hero">
-        <div>
-          <h1>Aprende chino <span class="hz">一步一步</span></h1>
-          <p>${total} caracteres del chino simplificado ordenados en 10 niveles de dificultad: su pinyin, su significado, de qué componentes están hechos y cómo se escriben.</p>
+      <header class="cab-hoy">
+        <h1>Niveles <span class="hz">一步一步</span></h1>
+        <p class="sub">${total} caracteres en 10 niveles, de los más sencillos a los más complejos.</p>
+        <div class="progreso-global" role="img" aria-label="${st.vistos} de ${total} caracteres vistos">
+          <div class="barra-avance"><span style="width:${vistosTotal}%"></span></div>
+          <small>${st.vistos} de ${total} vistos · ${st.dominados} dominados</small>
         </div>
-        <div class="stats">
-          <div><b>${st.vistos}</b><span>vistos</span></div>
-          <div><b>${st.dominados}</b><span>dominados</span></div>
-          <div><b>${racha.dias || 0}</b><span>días de racha</span></div>
-        </div>
-      </section>
-      ${hecha ? '' : `<a class="aviso-repaso" href="#/hoy">☀️ Tu sesión de hoy está pendiente <span>Empezar →</span></a>`}
+      </header>
+      ${hecha ? '' : `<a class="fila-accion destacada" href="#/hoy"><span class="fa-ico">${ico('sol')}</span><span class="fa-txt"><b>Tu sesión de hoy está pendiente</b><small>Unos minutos para no perder la racha de ${racha.dias || 0} ${racha.dias === 1 ? 'día' : 'días'}</small></span>${ico('flecha')}</a>`}
       <section class="niveles">
         ${D.niveles.map(n => {
           const abierto = P.desbloqueado(n.nivel);
@@ -86,7 +86,7 @@
               <div class="muestra hz">${n.caracteres.slice(0, 8).join(' ')}</div>
               <div class="barra-avance"><span style="width:${avance}%"></span></div>
             </div>
-            <div class="nivel-estado">${abierto ? estrellas(pr.estrellas) : '🔒'}</div>
+            <div class="nivel-estado">${abierto ? estrellas(pr.estrellas) : ico('candado')}</div>
           </a>`;
         }).join('')}
       </section>
@@ -106,21 +106,21 @@
     $app().innerHTML = `
       <section class="portada"><h1>Más <span class="hz">更多</span></h1></section>
       <section class="modos">
-        <a class="modo" href="#/tonos"><span class="ico">🎵</span><b>Pares de tonos</b><small>Las 20 combinaciones de dos sílabas: escucha, reconoce y pronuncia</small></a>
-        <a class="modo" href="#/pinyin"><span class="ico">🔤</span><b>Pinyin</b><small>Tonos, iniciales, finales y reglas para hispanohablantes</small></a>
-        <a class="modo" href="#/componentes"><span class="ico">🧩</span><b>Piezas</b><small>Familias de componentes de los caracteres</small></a>
-        <a class="modo" href="#/sincronizar"><span class="ico">🔄</span><b>Sincronizar</b><small>Pasa tu progreso entre computadora, iPhone y Android</small></a>
+        <a class="modo" href="#/tonos"><span class="ico">${ico('tonos')}</span><b>Pares de tonos</b><small>Las 20 combinaciones de dos sílabas: escucha, reconoce y pronuncia</small></a>
+        <a class="modo" href="#/pinyin"><span class="ico">${ico('pinyin')}</span><b>Pinyin</b><small>Tonos, iniciales, finales y reglas para hispanohablantes</small></a>
+        <a class="modo" href="#/componentes"><span class="ico">${ico('piezas')}</span><b>Piezas</b><small>Familias de componentes de los caracteres</small></a>
+        <a class="modo" href="#/sincronizar"><span class="ico">${ico('sincronizar')}</span><b>Sincronizar</b><small>Pasa tu progreso entre computadora, iPhone y Android</small></a>
       </section>
       <section class="ajustes abierto" id="ajustes">
-        <h2>⚙️ Ajustes</h2>
+        <h2>${ico('ajustes')} Ajustes</h2>
         <h3 class="grupo">Voz</h3>
-        <label class="fila interruptor"><input type="checkbox" id="aj-voz" ${aj.vozActiva ? 'checked' : ''}> Voz activada <small class="nota">(también con el botón 🔊 de arriba)</small></label>
+        <label class="fila interruptor"><input type="checkbox" id="aj-voz" ${aj.vozActiva ? 'checked' : ''}> <span>Voz activada <small class="nota">También con el botón del altavoz, arriba</small></span></label>
         <label class="fila">Volumen
           <input type="range" id="aj-vol" min="0" max="1" step="0.05" value="${aj.volumen}" ${aj.vozActiva ? '' : 'disabled'}> <output>${Math.round(aj.volumen * 100)} %</output></label>
         <label class="fila">Velocidad
           <input type="range" id="aj-vel" min="0.5" max="1.2" step="0.1" value="${aj.velocidadVoz}" ${aj.vozActiva ? '' : 'disabled'}> <output>${aj.velocidadVoz}</output></label>
-        <label class="fila interruptor"><input type="checkbox" id="aj-variar" ${aj.variarVoces ? 'checked' : ''}> Variar las voces en los ejercicios de escucha <small class="nota">(${window.Voz.numeroVoces()} voces chinas en este dispositivo; oír voces distintas entrena mejor el oído para los tonos)</small></label>
-        <p class="nota">${window.Voz.disponible() ? '🔊 Voz en chino disponible.' :'⚠️ No hay ninguna voz en chino instalada en este dispositivo. En Windows: Configuración → Hora e idioma → Idioma y región → Chino (simplificado, China) → ⋯ → Opciones de idioma → Voz → Descargar, y reinicia. Si usas la app desde Microsoft Edge, Edge trae voces chinas propias.'}</p>
+        <label class="fila interruptor"><input type="checkbox" id="aj-variar" ${aj.variarVoces ? 'checked' : ''}> <span>Variar las voces en la escucha <small class="nota">${window.Voz.numeroVoces()} voces chinas en este dispositivo. Oír voces distintas entrena mejor el oído para los tonos.</small></span></label>
+        <p class="nota">${window.Voz.disponible() ? 'Voz en chino disponible en este dispositivo.' :'No hay ninguna voz en chino instalada en este dispositivo. En Windows: Configuración → Hora e idioma → Idioma y región → Chino (simplificado, China) → ⋯ → Opciones de idioma → Voz → Descargar, y reinicia. Si usas la app desde Microsoft Edge, Edge trae voces chinas propias.'}</p>
         <h3 class="grupo">Estudio</h3>
         <label class="fila">Elementos nuevos por día
           <input type="range" id="aj-nuevos" min="2" max="15" step="1" value="${aj.nuevosPorDia}"> <output>${aj.nuevosPorDia}</output></label>
@@ -129,10 +129,10 @@
             <option value="0" ${!aj.leccionActual ? 'selected' : ''}>Sin indicar (seguir los niveles)</option>
             ${D.libro.map(l => `<option value="${l.leccion}" ${aj.leccionActual === l.leccion ? 'selected' : ''}>Lección ${l.leccion} · ${esc(l.tituloEs)}</option>`).join('')}
           </select></label>
-        <label class="fila interruptor"><input type="checkbox" id="aj-todo" ${aj.desbloquearTodo ? 'checked' : ''}> Desbloquear todos los niveles</label>
+        <label class="fila interruptor"><input type="checkbox" id="aj-todo" ${aj.desbloquearTodo ? 'checked' : ''}> <span>Desbloquear todos los niveles</span></label>
         <h3 class="grupo">Progreso</h3>
         <div class="fila botones">
-          <a class="btn sec" href="#/sincronizar">🔄 Sincronizar</a>
+          <a class="btn sec" href="#/sincronizar">${ico('sincronizar')} Sincronizar</a>
           <button class="btn sec" id="aj-exportar">Exportar copia</button>
           <button class="btn sec" id="aj-importar">Importar copia</button>
           <button class="btn peligro" id="aj-reiniciar">Borrar progreso</button>
@@ -157,7 +157,7 @@
     };
     document.getElementById('aj-todo').onchange = e => { P.cambiarAjuste('desbloquearTodo', e.target.checked); };
     document.getElementById('aj-variar').onchange = e => { P.cambiarAjuste('variarVoces', e.target.checked); };
-    document.getElementById('aj-leccion').onchange = e => { P.cambiarAjuste('leccionActual', +e.target.value); toast(+e.target.value ? `📍 Lección ${e.target.value}: la sesión de hoy priorizará su contenido.` : 'Volviendo a seguir los niveles.'); };
+    document.getElementById('aj-leccion').onchange = e => { P.cambiarAjuste('leccionActual', +e.target.value); toast(+e.target.value ? `Lección ${e.target.value}: la sesión de hoy priorizará su contenido.` : 'Volviendo a seguir los niveles.'); };
     document.getElementById('aj-exportar').onclick = async () => {
       const txt = P.exportar();
       try { await navigator.clipboard.writeText(txt); toast('Copia del progreso en el portapapeles.'); }
@@ -181,7 +181,7 @@
       <nav class="migas"><a href="#/mas">← Más</a></nav>
       <section class="portada"><h1>Pares de tonos <span class="hz">声调组合</span></h1>
         <p>En chino casi nunca se oye un tono solo: se oyen en parejas. Estas son las 20 combinaciones de dos sílabas, cada una con una palabra real. Escúchalas, grábate y compara tu curva. Fíjate en 你好: dos terceros tonos seguidos se dicen 2.º + 3.º.</p>
-        <a class="btn" href="#/tonos/practicar">🎧 ¿Qué tonos oyes? (práctica)</a>
+        <a class="btn" href="#/tonos/practicar">${ico('tonos')} ¿Qué tonos oyes? (práctica)</a>
       </section>
       <div class="tabla-pares">
         <div class="cab"></div>${[1, 2, 3, 4, 5].map(b => `<div class="cab ${tonoClase(b)}">+ ${nt(b)}</div>`).join('')}
@@ -190,7 +190,7 @@
           return p ? `<div class="par">
             <span class="par-tonos"><span class="${tonoClase(a)}">${a}</span> + <span class="${tonoClase(b)}">${nt(b)}</span></span>
             <button class="par-texto" data-decir="${esc(p.w)}"><span class="hz">${esc(p.w)}</span><span class="py">${esc(p.py)}</span><small>${esc(p.es)}</small></button>
-            ${window.Pronunciar.boton(p.w, p.py).replace('🎙️ Pronunciar', '🎙️')}</div>` : '<div></div>';
+            ${window.Pronunciar.boton(p.w, p.py).replace('<span class="txt">Pronunciar</span>', '')}</div>` : '<div></div>';
         }).join('')).join('')}
       </div>`;
   }
@@ -205,21 +205,21 @@
       <section class="portada">
         <div>
           <h1>${esc(cj.titulo)} <span class="hz">${esc(cj.tituloZh)}</span></h1>
-          <p>${cj.chars.length} caracteres · ${vistos} vistos${esNivel ? ` · mejor resultado ${Math.round(pr.mejor * 100)} % ${estrellas(pr.estrellas)}` : ''}</p>
+          <p>${cj.chars.length} caracteres · ${vistos} ${vistos === 1 ? 'visto' : 'vistos'}${esNivel ? ` · mejor resultado ${Math.round(pr.mejor * 100)} % ${estrellas(pr.estrellas)}` : ''}</p>
         </div>
       </section>
       <section class="modos">
-        <a class="modo" href="${cj.ruta}/aprender"><span class="ico">📖</span><b>Aprender</b><small>Fichas con pinyin, significado, componentes y trazos</small></a>
-        <a class="modo" href="${cj.ruta}/practicar"><span class="ico">🎯</span><b>Practicar</b><small>Preguntas sin límite para afianzar</small></a>
-        <a class="modo" href="${cj.ruta}/escribir"><span class="ico">✍️</span><b>Escribir</b><small>Traza cada carácter en el orden correcto</small></a>
-        ${esNivel ? `<a class="modo destacado" href="${cj.ruta}/desafio"><span class="ico">🏆</span><b>Desafío</b><small>20 preguntas: gana estrellas y desbloquea el siguiente nivel</small></a>` : `
-        <a class="modo" href="${cj.ruta}/palabras"><span class="ico">🗂️</span><b>Palabras</b><small>Vocabulario de la lección: significado, pinyin y escucha</small></a>
-        <a class="modo destacado" href="${cj.ruta}/frases"><span class="ico">💬</span><b>Frases</b><small>Ordena, traduce y entiende frases con lo aprendido</small></a>`}
+        <a class="modo" href="${cj.ruta}/aprender"><span class="ico">${ico('tarjetas')}</span><b>Aprender</b><small>Fichas con pinyin, significado, componentes y trazos</small></a>
+        <a class="modo" href="${cj.ruta}/practicar"><span class="ico">${ico('diana')}</span><b>Practicar</b><small>Preguntas sin límite para afianzar</small></a>
+        <a class="modo" href="${cj.ruta}/escribir"><span class="ico">${ico('pincel')}</span><b>Escribir</b><small>Traza cada carácter en el orden correcto</small></a>
+        ${esNivel ? `<a class="modo destacado" href="${cj.ruta}/desafio"><span class="ico">${ico('trofeo')}</span><b>Desafío</b><small>20 preguntas: gana estrellas y desbloquea el siguiente nivel</small></a>` : `
+        <a class="modo" href="${cj.ruta}/palabras"><span class="ico">${ico('palabras')}</span><b>Palabras</b><small>Vocabulario de la lección: significado, pinyin y escucha</small></a>
+        <a class="modo destacado" href="${cj.ruta}/frases"><span class="ico">${ico('frases')}</span><b>Frases</b><small>Ordena, traduce y entiende frases con lo aprendido</small></a>`}
       </section>
       ${esNivel ? '' : `
         <div class="fila botones">${P.ajustes().leccionActual === cj.id
-          ? '<span class="etq-actual">📍 Es tu lección actual</span>'
-          : `<button class="btn sec" id="marcar-leccion">📍 Estoy en esta lección</button>`}</div>`}
+          ? `<span class="etq-actual">${ico('pin')} Es tu lección actual</span>`
+          : `<button class="btn sec" id="marcar-leccion">${ico('pin')} Estoy en esta lección</button>`}</div>`}
       ${esNivel ? '' : vocabularioLeccion(cj.id)}
       <h2>Caracteres</h2>
       <section class="rejilla">
@@ -236,7 +236,7 @@
     const marcar = document.getElementById('marcar-leccion');
     if (marcar) marcar.onclick = () => {
       P.cambiarAjuste('leccionActual', cj.id);
-      toast(`📍 Lección ${cj.id} marcada: la sesión de hoy priorizará su contenido.`);
+      toast(`Lección ${cj.id} marcada: la sesión de hoy priorizará su contenido.`);
       portada(cj);
     };
   }
@@ -245,7 +245,7 @@
   function vocabularioLeccion(l) {
     const palabras = window.Items.palabrasDe(l);
     const frases = window.Items.frasesDe(l);
-    const pron = (t, py) => window.Pronunciar ? window.Pronunciar.boton(t, py).replace('🎙️ Pronunciar', '🎙️') : '';
+    const pron = (t, py) => window.Pronunciar ? window.Pronunciar.boton(t, py).replace('<span class="txt">Pronunciar</span>', '') : '';
     return `
       <h2>Vocabulario <small>生词</small></h2>
       <ul class="lista-vocab">${palabras.map(p => `
@@ -273,9 +273,9 @@
         <div class="ficha-izq">
           <div class="trazos-caja"><div id="hw" class="hw" aria-label="Animación de trazos de ${esc(c)}"></div></div>
           <div class="botones-trazo">
-            <button class="btn sec" data-accion="animar">▶ Ver trazos</button>
+            <button class="btn sec" data-accion="animar">${ico('play')} Ver trazos</button>
             ${hablar(c)}
-            ${window.Pronunciar ? window.Pronunciar.boton(c, ch.pinyin.split(/[\/ ]/)[0]).replace('🎙️ Pronunciar', '🎙️') : ''}
+            ${window.Pronunciar ? window.Pronunciar.boton(c, ch.pinyin.split(/[\/ ]/)[0]).replace('<span class="txt">Pronunciar</span>', '') : ''}
           </div>
           <dl class="meta">
             <div><dt>Trazos</dt><dd>${ch.trazos}</dd></div>
@@ -345,7 +345,7 @@
   function verCaracter(c) {
     const ch = D.caracteres[c];
     const nivel = ch ? D.niveles[ch.nivel - 1] : null;
-    $app().innerHTML = `<nav class="migas"><a href="javascript:history.back()">← Volver</a>${nivel ? ` · <a href="#/nivel/${ch.nivel}">Nivel ${ch.nivel}</a>` : ''}</nav>` + ficha(c);
+    $app().innerHTML = `<nav class="migas"><a href="javascript:history.back()">← Volver</a>${nivel ? `<a href="#/nivel/${ch.nivel}">Nivel ${ch.nivel}</a>` : ''}</nav>` + ficha(c);
     if (ch) { montarWriter(c); setTimeout(() => writer && writer.animateCharacter(), 400); }
   }
 
@@ -360,7 +360,7 @@
         <span>${i + 1} / ${cj.chars.length}</span>
         ${i < cj.chars.length - 1
           ? `<a class="btn" href="${cj.ruta}/aprender/${i + 1}">Siguiente →</a>`
-          : `<a class="btn" href="${cj.ruta}/practicar">¡A practicar! 🎯</a>`}
+          : `<a class="btn" href="${cj.ruta}/practicar">¡A practicar! ${ico('diana')}</a>`}
       </div>`;
     $app().innerHTML = `
       <nav class="migas"><a href="${cj.ruta}">← ${esc(cj.titulo)}</a></nav>
@@ -393,9 +393,9 @@
         <div class="trazos-caja grande"><div id="hw" class="hw cuadricula"></div></div>
         <div id="resultado-escritura" class="nota" aria-live="polite"></div>
         <div class="botones-trazo">
-          <button class="btn sec" data-accion="animar">👁 Ver cómo se escribe</button>
+          <button class="btn sec" data-accion="animar">${ico('ojo')} Ver cómo se escribe</button>
           <button class="btn sec" data-accion="contorno">Mostrar/ocultar guía</button>
-          <button class="btn sec" data-accion="reiniciar">↺ Otra vez</button>
+          <button class="btn sec" data-accion="reiniciar">${ico('repetir')} Otra vez</button>
         </div>
         <div class="paginador">
           <a class="btn sec ${i === 0 ? 'off' : ''}" href="${cj.ruta}/escribir/${i - 1}">← Anterior</a>
@@ -416,7 +416,7 @@
           P.responder(c, bien);
           out.innerHTML = bien
             ? `✅ ¡Muy bien! ${s.totalMistakes ? s.totalMistakes + ' error(es).' : 'Sin errores.'}`
-            : `✍️ Terminado con ${s.totalMistakes} errores. Repítelo para afianzarlo.`;
+            : `Terminado con ${s.totalMistakes} errores. Repítelo para afianzarlo.`;
           window.Voz.decir(c);
         },
       });
@@ -445,7 +445,7 @@
     $app().innerHTML = `
       <section class="portada"><h1>Pinyin <span class="hz">拼音</span></h1>
         <p>El pinyin es la escritura del chino con letras latinas. Cada sílaba tiene una <b>inicial</b> (consonante), una <b>final</b> (vocales, a veces con n/ng) y un <b>tono</b>. Pulsa cualquier ejemplo para escucharlo.</p>
-        <div class="fila botones"><a class="btn" href="#/pinyin/practicar">🎵 Practicar tonos</a> <a class="btn sec" href="#/tonos">Pares de tonos y pronunciación 🎙️</a></div>
+        <div class="fila botones"><a class="btn" href="#/pinyin/practicar">${ico('tonos')} Practicar tonos</a> <a class="btn sec" href="#/tonos">${ico('micro')} Pares de tonos y pronunciación</a></div>
       </section>
       <h2>Los 4 tonos (+ el neutro)</h2>
       <p class="nota">El tono cambia el significado: mā (mamá), má (cáñamo), mǎ (caballo), mà (regañar). Los colores de los tonos se mantienen en toda la app.</p>
@@ -456,7 +456,7 @@
             <h3>${t.nombre} <span class="marca">${t.marca}</span></h3>
             <p class="forma">${t.forma}</p>
             <p>${esc(t.consejo)}</p>
-            <button class="ej" data-decir="${esc(t.ejemplo.c)}"><span class="hz">${t.ejemplo.c}</span> ${t.ejemplo.p} · ${esc(t.ejemplo.es)} 🔊</button>
+            <button class="ej" data-decir="${esc(t.ejemplo.c)}"><span class="hz">${t.ejemplo.c}</span> ${t.ejemplo.p} · ${esc(t.ejemplo.es)} ${ico('altavoz')}</button>
           </div>`).join('')}
       </div>
       <h2>Iniciales <small>声母</small></h2>
@@ -464,13 +464,13 @@
         <h3 class="grupo">${esc(g.grupo)}</h3>
         <div class="sonidos">${g.items.map(x => `
           <button class="sonido" data-decir="${esc(x.ej.split(' ')[0])}">
-            <b>${x.i}</b><span>${esc(x.nota)}</span><em class="hz">${esc(x.ej)} 🔊</em></button>`).join('')}</div>`).join('')}
+            <b>${x.i}</b><span>${esc(x.nota)}</span><em class="hz">${esc(x.ej)} ${ico('altavoz')}</em></button>`).join('')}</div>`).join('')}
       <h2>Finales <small>韵母</small></h2>
       ${G.finales.map(g => `
         <h3 class="grupo">${esc(g.grupo)}</h3>
         <div class="sonidos">${g.items.map(x => `
           <button class="sonido" data-decir="${esc(x.ej.split(' ')[0])}">
-            <b>${x.f}</b><span>${esc(x.nota)}</span><em class="hz">${esc(x.ej)} 🔊</em></button>`).join('')}</div>`).join('')}
+            <b>${x.f}</b><span>${esc(x.nota)}</span><em class="hz">${esc(x.ej)} ${ico('altavoz')}</em></button>`).join('')}</div>`).join('')}
       <h2>Reglas importantes</h2>
       <div class="reglas">${G.reglas.map(r => `<div class="regla"><h4>${esc(r.titulo)}</h4><p>${esc(r.texto)}</p></div>`).join('')}</div>
       <h2>Trazos básicos <small>笔画</small></h2>
@@ -517,7 +517,7 @@
   function libro() {
     $app().innerHTML = `
       <section class="portada"><h1>Chino paso a paso 1 <span class="hz">汉语一步一步</span></h1>
-        <p>Vocabulario, frases y caracteres de cada lección, para estudiar al mismo ritmo que el curso. Entra en la lección en la que vas y pulsa <b>📍 Estoy en esta lección</b>: la sesión de hoy priorizará ese contenido.</p></section>
+        <p>Vocabulario, frases y caracteres de cada lección, para estudiar al mismo ritmo que el curso. Entra en la lección en la que vas y pulsa <b>Estoy en esta lección</b>: la sesión de hoy priorizará ese contenido.</p></section>
       <div class="lecciones">
         ${D.libro.map(l => {
           const vistos = [...l.caracteres].filter(c => P.char(c)?.visto).length;
@@ -525,7 +525,7 @@
           return `
           <a class="leccion ${actual ? 'actual' : ''}" href="#/libro/${l.leccion}">
             <div class="nivel-num">${l.leccion}</div>
-            <div><h3><span class="hz">${esc(l.titulo)}</span>${actual ? ' <span class="etq-actual">📍 Tu lección</span>' : ''}</h3><p>${esc(l.tituloEs)}</p>
+            <div><h3><span class="hz">${esc(l.titulo)}</span>${actual ? ` <span class="etq-actual">${ico('pin')} Tu lección</span>` : ''}</h3><p>${esc(l.tituloEs)}</p>
             <div class="muestra hz">${[...l.caracteres].slice(0, 12).join(' ')}${l.caracteres.length > 12 ? ' …' : ''}</div></div>
             <div class="nivel-estado"><small>${vistos}/${[...l.caracteres].length}</small></div>
           </a>`;

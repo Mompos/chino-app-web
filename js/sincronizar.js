@@ -85,11 +85,11 @@
         <p>Pasa tu progreso entre la computadora, el iPhone y Android. No hace falta cuenta: el progreso viaja en un código, y al recibirlo se <b>fusiona</b> con el del otro dispositivo (de cada carácter, palabra o frase se queda el registro con más práctica).</p></section>
       <div id="recibido"></div>
       <section class="caja-repaso">
-        <h2>📤 Enviar mi progreso</h2>
+        <h2>${window.Iconos.svg('enviar')} Enviar mi progreso</h2>
         <div id="envio"><p class="nota">Preparando el código…</p></div>
       </section>
       <section class="caja-repaso">
-        <h2>📥 Recibir progreso</h2>
+        <h2>${window.Iconos.svg('sincronizar')} Recibir progreso</h2>
         <p>Pega aquí el código o el enlace que copiaste en el otro dispositivo:</p>
         <textarea id="codigo-pegado" rows="3" class="campo" placeholder="HZ1… o https://…#/sincronizar/HZ1…" spellcheck="false" autocapitalize="off"></textarea>
         <div class="fila botones"><button class="btn" id="btn-fusionar">Fusionar con mi progreso</button></div>
@@ -114,7 +114,7 @@
     document.getElementById('envio').innerHTML = `
       ${qr}
       <div class="fila botones">
-        <button class="btn" id="btn-copiar">📋 Copiar enlace</button>
+        <button class="btn" id="btn-copiar">Copiar enlace</button>
         ${navigator.share ? '<button class="btn sec" id="btn-compartir">Compartir…</button>' : ''}
       </div>
       <p class="nota">Envíatelo por WhatsApp o correo y ábrelo (o pégalo abajo) en el otro dispositivo. Código de ${codigo.length} caracteres.</p>`;
@@ -133,10 +133,10 @@
       const n = Object.keys(otro.chars).length;
       caja.innerHTML = `
         <section class="caja-repaso destacada">
-          <h2>📥 Progreso recibido</h2>
+          <h2>${window.Iconos.svg('sincronizar')} Progreso recibido</h2>
           <p>Este enlace trae <b>${n}</b> elementos estudiados.</p>
           ${esIOS && !instalada ? `<p class="aviso-mal">Estás en Safari. Si tienes la app instalada en la pantalla de inicio, su progreso está separado: copia el código y pégalo dentro de la app.</p>
-            <div class="fila botones"><button class="btn sec" id="btn-copiar-cod">📋 Copiar código</button></div>` : ''}
+            <div class="fila botones"><button class="btn sec" id="btn-copiar-cod">Copiar código</button></div>` : ''}
           <div class="fila botones"><button class="btn" id="btn-fusionar-rec">Fusionar con mi progreso</button></div>
           <div id="msg-rec" aria-live="polite"></div>
         </section>`;
@@ -152,7 +152,7 @@
     try {
       const otro = await decodificar(texto);
       const r = P.fusionar(otro);
-      $msg.innerHTML = `<p class="aviso-bien">✅ Progreso fusionado: ${r.nuevos} elementos nuevos y ${r.actualizados} actualizados.</p>`;
+      $msg.innerHTML = `<p class="aviso-bien">${window.Iconos.svg('check')} Progreso fusionado: ${r.nuevos} elementos nuevos y ${r.actualizados} actualizados.</p>`;
       window.App && window.App.actualizarBadge();
     } catch (e) {
       $msg.innerHTML = `<p class="aviso-mal">${esc(e.message === 'formato' ? 'El código no es válido.' : e.message)}</p>`;
